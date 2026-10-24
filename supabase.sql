@@ -34,7 +34,7 @@ $$;
 
 -- dobrý deň: aspoň 5 zo 6 bodov, v nedeľu stačí 1
 create or replace function public.is_good(h jsonb, d date)
-returns boolean language sql immutable as $$
+returns boolean language sql immutable set search_path = public as $$
   select (select count(*) from jsonb_each(h) where value = 'true'::jsonb)
          >= case when extract(isodow from d) = 7 then 1 else 5 end
 $$;
@@ -125,4 +125,6 @@ revoke all on function public.leaderboard_groups() from public, anon;
 revoke all on function public.leaderboard_pairs()  from public, anon;
 grant execute on function public.leaderboard_groups() to authenticated;
 grant execute on function public.leaderboard_pairs()  to authenticated;
+revoke all on function public.my_pair_code() from public, anon;
+revoke all on function public.is_good(jsonb, date) from anon;
 grant execute on function public.my_pair_code()       to authenticated;
