@@ -200,4 +200,5 @@ html{scroll-behavior:smooth}
 .iosTip .x{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:6px}
 .install{position:relative}
 .install .x{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:6px}
-#installDay{margin:18px 0 0;padding-right:40px}
+#installDay{margin:12px 0;padding-right:40px}
+.installTop:has(#installDay[hidden]){display:none}
