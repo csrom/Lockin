@@ -80,6 +80,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 .item input:disabled{opacity:.5;cursor:default}
 .item svg{width:30px;height:30px;flex:none;color:#b9c6d4}
 .item .t{font-size:18px;font-weight:500;flex:1;min-width:0}
+.item .t small{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:2px;line-height:1.35}
 .item select{background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:6px;font:inherit;font-size:14px}
 .saved{min-height:20px;margin-top:8px}
 .fall{margin-top:8px}

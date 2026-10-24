@@ -12,8 +12,12 @@
     scroll: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.2"/><path d="M10.5 18.5h3M12 7.5v4l2 1.5"/>'
   };
   const HABITS = [
-    { id: "clean", t: "Čistý deň" }, { id: "move", t: "Cvičenie" }, { id: "mind", t: "Modlitba alebo Písmo" },
-    { id: "deep", t: "Deep work", dur: true }, { id: "cold", t: "Studená sprcha alebo ponor" }, { id: "scroll", t: "Scrollovanie max 30 min" }
+    { id: "clean", t: "Čistý deň", d: "Bez porna a masturbácie" },
+    { id: "move", t: "Beh alebo cvičenie", d: "Poriadne, nech tečie pot" },
+    { id: "mind", t: "Modlitba alebo Písmo", d: "Aspoň chvíľa ticha s Bohom alebo kapitola z Biblie" },
+    { id: "deep", t: "Deep work", d: "Sústredená práca bez mobilu a notifikácií", dur: true },
+    { id: "cold", t: "Studená sprcha alebo ponor", d: "Aspoň 1 minúta studenej vody" },
+    { id: "scroll", t: "Obmedzenie scrollovania", d: "Sociálne siete a videá max 30 min za deň" }
   ];
   const NEED = 5, CH = 30;
   const STAGES = [
@@ -240,7 +244,7 @@
     const dis = future || ro;
     $("list").innerHTML = HABITS.map(h => `<label class="item"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
-      <span class="t">${h.t}</span>
+      <span class="t">${h.t}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
     $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
