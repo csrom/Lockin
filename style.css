@@ -219,8 +219,8 @@ html{scroll-behavior:smooth}
 .win .seal.big{width:120px;height:120px;animation:pop .7s cubic-bezier(.2,1.4,.3,1) both}
 .win .seal.big svg{width:64px;height:64px}
 .win .ck{stroke-dasharray:12;stroke-dashoffset:12;animation:draw .5s .45s ease forwards}
-.win h2{font-size:clamp(58px,19vw,92px);line-height:.9;margin:6px 0 4px;color:#fff;text-transform:uppercase;text-shadow:0 6px 40px rgba(111,156,201,.7);animation:rise .6s .2s cubic-bezier(.2,.9,.3,1.2) both}
-.win .label{color:var(--dawn);animation:rise .5s .1s both}
+.win h2{font-size:clamp(58px,19vw,92px);line-height:.95;margin:8px 0 6px;color:#fff;text-transform:uppercase;text-shadow:0 6px 40px rgba(111,156,201,.7);animation:rise .6s .2s cubic-bezier(.2,.9,.3,1.2) both}
+.win .label{color:var(--dawn);animation:rise .5s .1s both;margin:14px 0 6px}
 .win .verse{animation:rise .6s .35s both;margin:4px 0}
 .win .streak{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#c9d4e0;animation:rise .6s .45s both}
 .win .btn{margin-top:14px;max-width:260px;animation:rise .6s .55s both}
@@ -280,3 +280,6 @@ html{scroll-behavior:smooth}
 .tabs .dot{position:absolute;top:6px;right:calc(50% - 16px);width:9px;height:9px;border-radius:50%;background:var(--dawn);box-shadow:0 0 0 2px var(--bg)}
 .tabs .dot[hidden]{display:none}
 #fallChat{margin-top:12px}
+.wingo{margin:6px 0 0;color:#c9d4e0;font-size:15px;line-height:1.45;max-width:300px;animation:rise .6s .5s both}
+.locknote{margin:10px 0 0;font-size:13px}
+.done{margin:10px 0 0}

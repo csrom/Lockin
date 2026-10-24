@@ -248,7 +248,7 @@
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
     $("scoreN").textContent = c + "/6";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
-    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
+    cap.textContent = future ? "tento deň ešte nezačal" : (d < today && !g && !isAdmin) ? "deň je uzamknutý" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
     let wk = "";
     for (let i = 0; i < L; i++) {
       const x = add(b, i), fut = x > today, cl = good(doc, x) ? "good" : cnt(doc, x) > 0 ? "part" : "";
@@ -256,18 +256,18 @@
     }
     $("week").innerHTML = wk;
     $("week").style.gridTemplateColumns = `repeat(${Math.max(L, 5)},minmax(0,1fr))`;
-    const dis = future || ro;
+    const closed = d < today && !isAdmin;
+    const dis = future || ro || closed;
     $("list").innerHTML = HABITS.map(h => `<label class="item"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
-    const folded = g && !future && !expanded[iso(d)];
-    $("list").hidden = folded; $("doneBox").hidden = !folded;
-    if (folded) {
-      $("doneTitle").textContent = ro ? "Parťák zamkol deň" : "Deň zamknutý";
-      $("doneSub").textContent = c + "/6 bodov" + (d.getDay() === 0 ? " · voľná nedeľa" : "") + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade");
-      $("doneEdit").hidden = ro;
+    $("doneBox").hidden = !(g && !future);
+    if (g && !future) {
+      $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
+      $("doneSub").textContent = c + "/6 bodov" + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= 6 || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
     }
+    $("lockNote").textContent = ro || future ? "" : closed ? "Tento deň je uzamknutý." : (+d === +today ? "Deň sa uzamkne o polnoci." : "");
     deadlineUi();
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
     $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
@@ -289,11 +289,8 @@
     if (e.target.dataset.h) mine[k][e.target.dataset.h] = e.target.checked;
     if (e.target.hasAttribute("data-dur")) mine[k].dur = e.target.value;
     const now = good(docOf(me), sel);
-    if (!was && now) {
-      expanded[k] = false;
-      $("list").classList.add("fold");
-      setTimeout(() => { $("list").classList.remove("fold"); renderDnes(); celebrate(sel); }, 420);
-    } else { if (was && !now) expanded[k] = true; renderDnes(); }
+    renderDnes();
+    if (!was && now) setTimeout(() => celebrate(sel), 250);
     $("savedMsg").textContent = "Ukladám…";
     clearTimeout(timers[k]);
     timers[k] = setTimeout(async () => {
@@ -310,7 +307,6 @@
     while (good(doc, x) && x >= fromIso(doc.start)) { n++; x = add(x, -1); }
     return n;
   }
-  $("doneEdit").onclick = () => { expanded[iso(sel)] = true; renderDnes(); };
   function celebrate(d) {
     const docs = pm(), doc = docOf(me);
     $("winK").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH;
@@ -328,7 +324,29 @@
       w.appendChild(sp);
     }
     w.hidden = false; $("winClose").focus();
+    fanfare();
     try { navigator.vibrate && navigator.vibrate([40, 60, 120]); } catch (e) {}
+  }
+  // Krátka oslavná fanfára cez Web Audio (bez súboru)
+  let actx = null;
+  function fanfare() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      const t0 = actx.currentTime + 0.05, out = actx.createGain(); out.gain.value = 0.22; out.connect(actx.destination);
+      const tone = (f, t, d, type = "triangle", v = 1) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = type; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + d + 0.05);
+      };
+      // ta-ta-ta-táá (G4 C5 E5 G5) + akord C dur
+      [[392, 0], [523.25, 0.13], [659.25, 0.26]].forEach(([f, dt]) => { tone(f, t0 + dt, 0.22, "square", 0.35); tone(f, t0 + dt, 0.25); });
+      [523.25, 659.25, 783.99, 1046.5].forEach(f => { tone(f, t0 + 0.42, 1.6); tone(f / 2, t0 + 0.42, 1.6, "sine", 0.6); });
+      tone(783.99, t0 + 0.42, 0.5, "square", 0.25);
+      // trblietky
+      for (let i = 0; i < 10; i++) tone(1568 + Math.random() * 1400, t0 + 0.55 + i * 0.07, 0.25, "sine", 0.25);
+    } catch (e) {}
   }
   $("winClose").onclick = $("win").onclick = e => { if (e.target.closest(".btn") || e.target === $("win") || e.target.classList.contains("rays")) $("win").hidden = true; };
   $("fallBtn").onclick = () => { $("fallNote").hidden = !$("fallNote").hidden; };
@@ -459,13 +477,25 @@
     document.querySelectorAll("[data-lb]").forEach(bt => bt.setAttribute("aria-selected", bt.dataset.lb === lbTab));
     if (!lbData) return;
     const res = lbData[lbTab], mg = norm(me.group_name), myNames = partner ? [me.nick, partner.nick] : [];
+    const has = (res.data || []).some(x => x.points !== undefined && x.points !== null);
+    const b = n => n + " b";
+    const usp = n => n + (n === 1 ? " úspešný deň" : n >= 2 && n <= 4 ? " úspešné dni" : " úspešných dní");
     const cfg = {
-      players: { note: "Úspešné dni v aktuálnej výzve", empty: "Zatiaľ nikto.",
-        map: x => ({ name: x.nick, sub: (x.group_name || "sólo") + " · " + x.pct + " % za 7 dní", score: x.days + "/30", val: x.days / 30, mine: x.nick === me.nick && norm(x.group_name) === mg }) },
-      pairs: { note: "Dni, keď boli úspešní obaja · posledných 30 dní", empty: "Zatiaľ žiadna kompletná dvojica. Zadajte s parťákom rovnaký kód dvojice v profile.",
-        map: x => ({ name: x.names, sub: x.group_name || "", score: x.days + "/30", val: x.days / 30, mine: myNames.length && myNames.every(n => (x.names || "").includes(n)) }) },
-      groups: { note: "Percento úspešných dní · posledných 7 dní", empty: "Zatiaľ žiadna skupina. Zadaj názov skupiny v profile.",
-        map: x => ({ name: x.group_name, sub: x.members + " " + (x.members === 1 ? "člen" : x.members < 5 ? "členovia" : "členov"), score: x.pct + " %", val: x.pct / 100, mine: norm(x.group_name) === mg }) }
+      players: { note: has ? "Body = odkliknuté aktivity vo výzve. Kto má viac, vedie." : "Úspešné dni v aktuálnej výzve", empty: "Zatiaľ nikto.",
+        map: x => has
+          ? ({ name: x.nick, sub: (x.group_name || "sólo") + " · " + usp(x.days), score: b(x.points), val: x.points / 180, mine: x.nick === me.nick && norm(x.group_name) === mg })
+          : ({ name: x.nick, sub: (x.group_name || "sólo") + " · " + x.pct + " % za 7 dní", score: x.days + "/30", val: x.days / 30, mine: x.nick === me.nick && norm(x.group_name) === mg }) },
+      pairs: { note: has ? "Body oboch spolu za posledných 30 dní" : "Dni, keď boli úspešní obaja · posledných 30 dní", empty: "Zatiaľ žiadna kompletná dvojica. Zadajte s parťákom rovnaký kód dvojice v profile.",
+        map: x => has
+          ? ({ name: x.names, sub: (x.group_name ? x.group_name + " · " : "") + x.days + " " + dniWord(x.days) + " úspešní obaja", score: b(x.points), val: x.points / 360, mine: myNames.length && myNames.every(n => (x.names || "").includes(n)) })
+          : ({ name: x.names, sub: x.group_name || "", score: x.days + "/30", val: x.days / 30, mine: myNames.length && myNames.every(n => (x.names || "").includes(n)) }) },
+      groups: { note: has ? "Priemerné body na člena · posledných 7 dní" : "Percento úspešných dní · posledných 7 dní", empty: "Zatiaľ žiadna skupina. Zadaj názov skupiny v profile.",
+        map: x => {
+          const m = x.members + " " + (x.members === 1 ? "člen" : x.members < 5 ? "členovia" : "členov");
+          return has
+            ? ({ name: x.group_name, sub: m + " · " + x.pct + " % úspešných dní", score: String(x.points).replace(".", ",") + " b", val: x.points / 42, mine: norm(x.group_name) === mg })
+            : ({ name: x.group_name, sub: m, score: x.pct + " %", val: x.pct / 100, mine: norm(x.group_name) === mg });
+        } }
     }[lbTab];
     $("lbNote").textContent = cfg.note;
     if (res.error) { $("podium").innerHTML = ""; $("myPos").hidden = true; $("lbList").innerHTML = '<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>'; return; }

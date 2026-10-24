@@ -48,7 +48,7 @@
       <div class="h2 small" id="pravidla">Pravidlá</div>
       <ol class="steps">
         <li><div><b>Každý deň 6 bodov</b><span>Čistý deň, beh alebo cvičenie, modlitba alebo Písmo, deep work, studená sprcha a obmedzenie scrollovania na max 30 minút.</span></div></li>
-        <li><div><b>Jeden bod môžeš vynechať</b><span>Úspešný deň je 5 zo 6. Nedeľa je voľná, stačí 1 bod.</span></div></li>
+        <li><div><b>Jeden bod môžeš vynechať</b><span>Úspešný deň je 5 zo 6. Nedeľa je voľná, stačí 1 bod. V rebríčku sa ráta každý bod.</span></div></li>
         <li><div><b>30 dní, začni kedykoľvek</b><span>Týždeň sa ráta 7 dní od tvojho štartu. Za každý zamknutý týždeň je tajná odmena.</span></div></li>
         <li><div><b>Sám, vo dvojici alebo v skupine</b><span>S parťákom zadáte rovnaký kód. Skupiny medzi sebou súperia.</span></div></li>
       </ol>
@@ -114,9 +114,9 @@
       <div class="done" id="doneBox" hidden>
         <div class="seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
         <div><b id="doneTitle">Deň zamknutý</b><span id="doneSub"></span></div>
-        <button class="link" id="doneEdit" type="button">Upraviť</button>
       </div>
       <div class="list" id="list"></div>
+      <p class="hint locknote" id="lockNote"></p>
       <p class="hint saved" id="savedMsg" aria-live="polite"></p>
       <button class="btn ghost fall" id="fallBtn">Spadol som. Čo teraz?</button>
       <div class="note" id="fallNote" hidden>
@@ -183,6 +183,8 @@
       <summary>Prečítaj si pravidlá</summary>
       <ul class="rules">
         <li>Úspešný deň je aspoň 5 zo 6 bodov. V nedeľu stačí 1 bod.</li>
+        <li>Deň odklikneš do polnoci, potom sa uzamkne.</li>
+        <li>V rebríčku sa rátajú body: každá odkliknutá aktivita je bod. Kto má viac, vedie.</li>
         <li>Výzva trvá 30 dní od tvojho štartu: štyri týždne a dvojdňové finále.</li>
         <li>Týždeň zamkneš, keď máš všetky dni úspešné. Odmena sa odhalí až po jeho skončení.</li>
         <li>Vo dvojici padne odmena, len keď týždeň zamknete obaja. Dvojica začína dňom, keď sa pripojí druhý.</li>
@@ -254,7 +256,8 @@
     <h2 class="disp" id="winT">Úspešný<br>deň</h2>
     <p class="verse" id="winV"></p>
     <div class="streak" id="winS"></div>
-    <button class="btn" id="winClose">Lock in</button>
+    <p class="wingo">Môžeš pokračovať ďalej. Každý ďalší bod sa ráta do rebríčka.</p>
+    <button class="btn" id="winClose">Pokračovať</button>
   </div>
 </div>
 <div class="loading" id="loading">Načítavam…</div>
