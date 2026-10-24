@@ -386,6 +386,7 @@
   // „Pravidlá nižšie“ zmizne, keď sa začne posúvať
   const moreUi = () => { const m = document.querySelector(".more"); if (m) m.classList.toggle("gone", window.scrollY > 60 || $("v-intro").hidden); };
   window.addEventListener("scroll", moreUi, { passive: true });
+  window.addEventListener("load", () => setTimeout(moreUi, 50));
 
   // ─── SKUPINA ──────────────────────────────────────────
   async function renderSkupina() {
