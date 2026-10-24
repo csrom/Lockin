@@ -190,3 +190,5 @@ html{scroll-behavior:smooth}
 .more.gone{}
 .deadline{margin:14px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted)}
 .deadline b{color:var(--dawn);font-weight:600}
+.install{padding:16px;margin:0 0 14px;display:flex;flex-direction:column;gap:10px}
+.install b{font-size:17px}

@@ -6,6 +6,13 @@
 <title>Lock In · 30 dní disciplíny</title>
 <meta name="description" content="30-dňová výzva disciplíny pre chlapov. Sám, vo dvojici alebo v skupine.">
 <meta name="theme-color" content="#0a0d12">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lock In">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta property="og:title" content="Lock In · 30 dní disciplíny">
 <meta property="og:description" content="Bdejte, stojte pevne vo viere, buďte mužní, buďte silní.">
 <meta property="og:image" content="/media/stage1.webp">
@@ -169,6 +176,11 @@
       <p class="hint" id="aMsg" aria-live="polite"></p>
       <div class="h2">Účastníci</div>
       <div class="card board" id="aUsers"></div>
+    </div>
+    <div class="card install" id="install" hidden>
+      <b>Lock In na plochu</b>
+      <p class="hint" id="installTxt"></p>
+      <button class="btn" id="installBtn" hidden>Nainštalovať appku</button>
     </div>
     <button class="btn ghost" id="logoutBtn">Odhlásiť sa</button>
     <p class="hint" id="acct"></p>

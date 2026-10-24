@@ -505,5 +505,25 @@
     ({ dnes: renderDnes, vystup: renderVystup, skupina: renderSkupina, profil: renderProfil })[tab]();
   }
 
+  // ─── APPKA NA PLOCHU (PWA) ────────────────────────────
+  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  let installEvt = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; installUi(); });
+  window.addEventListener("appinstalled", () => { installEvt = null; installUi(); });
+  function installUi() {
+    const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua), inApp = /FBAN|FBAV|Instagram|Messenger|Line\//.test(ua);
+    $("install").hidden = standalone;
+    if (standalone) return;
+    $("installBtn").hidden = !installEvt;
+    $("installTxt").textContent = inApp
+      ? "Otvor túto stránku v Safari (iPhone) alebo Chrome (Android) a pridaj si ju na plochu. Z Messengera sa to nedá."
+      : ios ? "V Safari ťukni na Zdieľať (štvorček so šípkou) a vyber Pridať na plochu."
+      : installEvt ? "Nainštaluj si Lock In ako appku, budeš ho mať na ploche s vlastnou ikonou."
+      : "V prehliadači otvor menu (⋮) a vyber Inštalovať aplikáciu alebo Pridať na plochu.";
+  }
+  $("installBtn").onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; installUi(); };
+  installUi();
+
   boot();
 })();
