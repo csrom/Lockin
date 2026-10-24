@@ -279,8 +279,8 @@
     const sv = $("stageVid"); sv.pause(); sv.hidden = true;
     $("stagePlay").hidden = si < 1;
     $("stagePlay").onclick = () => {
-      sv.src = si === 4 ? "/media/vitazstvo.mp4" : "/media/odmena" + si + ".mp4";
-      sv.poster = si === 4 ? "/media/vitazstvo.webp" : "/media/odmena" + si + ".webp";
+      sv.src = si === 4 ? "/media/finale.mp4" : "/media/odmena" + si + ".mp4";
+      sv.poster = si === 4 ? "/media/finale.webp" : "/media/odmena" + si + ".webp";
       sv.hidden = false; sv.muted = false; $("stagePlay").hidden = true;
       sv.play().catch(() => { sv.muted = true; sv.play(); });
     };
@@ -321,8 +321,8 @@
     const slot = Math.min(4, Math.floor(dayIdx(bb, docs) / 7));
     $("mImg").style.backgroundImage = `url("${STAGES[Math.min(4, slot + 1)].img}")`;
     const mv = $("mVid");
-    mv.src = slot === 4 ? "/media/vitazstvo.mp4" : "/media/odmena" + (slot + 1) + ".mp4";
-    mv.poster = slot === 4 ? "/media/vitazstvo.webp" : "/media/odmena" + (slot + 1) + ".webp";
+    mv.src = slot === 4 ? "/media/finale.mp4" : "/media/odmena" + (slot + 1) + ".mp4";
+    mv.poster = slot === 4 ? "/media/finale.webp" : "/media/odmena" + (slot + 1) + ".webp";
     mv.muted = false; $("mReplay").hidden = true;
     mv.play().catch(() => { mv.muted = true; mv.play().catch(() => {}); });
     $("mLabel").textContent = slot === 4 ? "Finále" : "Odmena · týždeň " + (slot + 1);
