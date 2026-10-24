@@ -273,8 +273,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
-    if (bon.length) $("list").innerHTML += `<div class="bonus-h">⭐ Nedeľný bonus</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
-      <span class="star" aria-hidden="true">⭐</span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
+    if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>Nedeľný bonus</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
+      <span class="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg></span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
