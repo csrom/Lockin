@@ -23,6 +23,7 @@ Statický web (HTML, CSS, JS) na **Verceli**, dáta a prihlásenie v **Supabase*
 
 ## Súbory
 - `index.html`, `style.css`, `app.js` – appka
+- Prihlásenie: e-mail + heslo. V Supabase → Authentication → Sign In / Providers → Email vypni „Confirm email“.
 - `config.js` – Supabase URL a verejný (publishable) kľúč. Tajný kľúč sem nikdy nedávaj.
 - `supabase.sql` – tabuľky, pravidlá prístupu a rebríčky
 - `media/` – obrázky a video výstupu

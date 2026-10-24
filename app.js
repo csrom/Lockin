@@ -111,6 +111,7 @@
     return true;
   }
 
+  let recovering = location.hash.includes("type=recovery");
   let booting = null;
   function boot() { if (!booting) booting = doBoot().finally(() => { booting = null; }); return booting; }
   async function doBoot() {
@@ -129,6 +130,11 @@
         }
         return;
       }
+      if (recovering) {
+        show("login"); $("loginForm").hidden = true; $("newPassForm").hidden = false;
+        history.replaceState(null, "", location.pathname);
+        return;
+      }
       if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
       const ok = await loadAll();
       if (!ok) { show("join"); return; }
@@ -143,42 +149,53 @@
 
   // ─── Úvod a prihlásenie ───────────────────────────────
   $("goLogin").onclick = $("goLogin2").onclick = () => { show("login"); $("lEmail").focus(); };
-  let loginEmail = "";
-  async function sendCode(email) {
-    $("loginBtn").disabled = true;
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: cfg.siteUrl || location.origin } });
-    $("loginBtn").disabled = false;
-    if (error) {
-      const wait = /after (\d+) seconds/.exec(error.message);
-      $("loginMsg").textContent = wait ? "Počkaj " + wait[1] + " s a skús znova." : "Kód sa nepodarilo poslať: " + error.message;
-      return false;
-    }
-    return true;
-  }
+  const msg = t => { $("loginMsg").textContent = t; };
+  const skErr = e => {
+    const m = (e && e.message) || "";
+    if (/invalid login credentials/i.test(m)) return "Nesprávny e-mail alebo heslo.";
+    if (/already registered|already exists/i.test(m)) return "Tento e-mail už má účet. Prihlás sa, alebo klikni na Zabudol som heslo.";
+    if (/at least 6|password should/i.test(m)) return "Heslo musí mať aspoň 6 znakov.";
+    if (/email not confirmed/i.test(m)) return "E-mail ešte nie je potvrdený.";
+    const w = /after (\d+) seconds/.exec(m); if (w) return "Počkaj " + w[1] + " s a skús znova.";
+    return "Nepodarilo sa: " + m;
+  };
+  const creds = () => ({ email: $("lEmail").value.trim(), password: $("lPass").value });
   $("loginForm").addEventListener("submit", async e => {
     e.preventDefault();
-    loginEmail = $("lEmail").value.trim();
-    if (!(await sendCode(loginEmail))) return;
-    $("loginForm").hidden = true; $("codeForm").hidden = false;
-    $("codeMsg").textContent = "Kód sme poslali na " + loginEmail + ". Ak ho nevidíš, pozri spam.";
-    $("lCode").value = ""; $("lCode").focus();
+    $("loginBtn").disabled = true; msg("Prihlasujem…");
+    const { error } = await sb.auth.signInWithPassword(creds());
+    $("loginBtn").disabled = false;
+    if (error) msg(skErr(error));
   });
-  $("codeForm").addEventListener("submit", async e => {
+  $("signupBtn").onclick = async () => {
+    if (!$("loginForm").reportValidity()) return;
+    $("signupBtn").disabled = true; msg("Vytváram účet…");
+    const { data, error } = await sb.auth.signUp(creds());
+    $("signupBtn").disabled = false;
+    if (error) return msg(skErr(error));
+    if (!data.session) msg("Účet je vytvorený. Prihlás sa.");
+  };
+  $("forgotBtn").onclick = async () => {
+    const email = $("lEmail").value.trim();
+    if (!email) { msg("Najprv napíš svoj e-mail."); $("lEmail").focus(); return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: cfg.siteUrl || location.origin });
+    msg(error ? skErr(error) : "Poslali sme ti e-mail s odkazom na nové heslo. Ak ho nevidíš, pozri spam.");
+  };
+  sb.auth.onAuthStateChange(ev => {
+    if (ev !== "PASSWORD_RECOVERY") return;
+    recovering = true;
+    show("login"); $("loginForm").hidden = true; $("newPassForm").hidden = false; $("lNewPass").focus();
+  });
+  $("newPassForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const token = $("lCode").value.replace(/\D/g, "");
-    $("codeBtn").disabled = true;
-    const { error } = await sb.auth.verifyOtp({ email: loginEmail, token, type: "email" });
-    $("codeBtn").disabled = false;
-    if (error) $("codeMsg").textContent = "Kód nesedí alebo už vypršal. Skús ho znova, alebo si pošli nový.";
+    $("newPassBtn").disabled = true;
+    const { error } = await sb.auth.updateUser({ password: $("lNewPass").value });
+    $("newPassBtn").disabled = false;
+    if (error) { $("newPassMsg").textContent = skErr(error); return; }
+    recovering = false; $("newPassForm").hidden = true; $("loginForm").hidden = false;
+    boot();
   });
-  $("codeAgain").onclick = async () => {
-    if (await sendCode(loginEmail)) $("codeMsg").textContent = "Nový kód je na ceste na " + loginEmail + ".";
-    else $("codeMsg").textContent = $("loginMsg").textContent;
-  };
-  $("loginBack").onclick = () => {
-    if (!$("codeForm").hidden) { $("codeForm").hidden = true; $("loginForm").hidden = false; return; }
-    show("intro");
-  };
+  $("loginBack").onclick = () => show("intro");
 
   $("joinForm").addEventListener("submit", async e => {
     e.preventDefault();

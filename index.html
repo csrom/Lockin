@@ -48,14 +48,16 @@
     </div>
     <form class="form pad" id="loginForm">
       <div class="field"><label class="label" for="lEmail">E-mail</label><input id="lEmail" type="email" required autocomplete="email" inputmode="email" placeholder="tvoj@email.sk"></div>
-      <button class="btn" type="submit" id="loginBtn">Poslať kód</button>
-      <p class="hint" id="loginMsg">Pošleme ti e-mail s kódom. Zadáš ho tu a si dnu, bez hesla.</p>
+      <div class="field"><label class="label" for="lPass">Heslo</label><input id="lPass" type="password" required minlength="6" autocomplete="current-password" placeholder="aspoň 6 znakov"></div>
+      <button class="btn" type="submit" id="loginBtn">Prihlásiť sa</button>
+      <button class="btn ghost" type="button" id="signupBtn">Vytvoriť nový účet</button>
+      <p class="hint" id="loginMsg">Prvýkrát? Zadaj e-mail, vymysli si heslo a klikni na Vytvoriť nový účet.</p>
+      <button class="link" type="button" id="forgotBtn">Zabudol som heslo</button>
     </form>
-    <form class="form pad" id="codeForm" hidden>
-      <div class="field"><label class="label" for="lCode">Kód z e-mailu</label><input id="lCode" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" maxlength="10" placeholder="123456"></div>
-      <button class="btn" type="submit" id="codeBtn">Vstúpiť</button>
-      <p class="hint" id="codeMsg"></p>
-      <button class="link" type="button" id="codeAgain">Poslať nový kód</button>
+    <form class="form pad" id="newPassForm" hidden>
+      <div class="field"><label class="label" for="lNewPass">Nové heslo</label><input id="lNewPass" type="password" required minlength="6" autocomplete="new-password" placeholder="aspoň 6 znakov"></div>
+      <button class="btn" type="submit" id="newPassBtn">Uložiť heslo</button>
+      <p class="hint" id="newPassMsg">Nastav si nové heslo a si dnu.</p>
     </form>
   </section>
 
