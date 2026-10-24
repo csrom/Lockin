@@ -286,8 +286,19 @@
     $("stageTitle").textContent = (si === 4 ? "Vrchol" : "Týždeň " + Math.min(wk + 1, 4)) + " · " + s.theme;
     $("stageVerse").textContent = s.v;
     $("stageText").textContent = s.t;
+    // Odmeny pri bodoch: Svah = 1. týždeň, Polovica = 2., Hrebeň = 3., Vrchol = 4. týždeň a finále.
+    // Tlačidlo sa ukáže, keď je odmena už odhalená alebo zaslúžená.
+    const cs = cycleStart(nowOrStart(docs), docs), seenAll = me.seen || {};
+    const earned = k => {
+      const bb = add(cs, 7 * k); if (bb < fromIso(pairStart(docs))) return null;
+      const ended = add(bb, blockLen(bb, docs)) <= today;
+      return seenAll[iso(bb)] || (ended && blockWon(bb, docs)) ? bb : null;
+    };
+    const tags = i => (i === 0 ? [] : i < 4 ? [[i - 1, "odmena"]] : [[3, "odmena"], [4, "finále"]])
+      .map(([k, t]) => { const bb = earned(k); return bb ? `<button class="gtag" type="button" data-rb="${iso(bb)}" aria-label="Pozrieť odmenu: ${ROT[k][0]}">${t}</button>` : ""; }).join("");
     $("path").innerHTML = '<span class="fill" id="pathFill"></span>' + STAGES.map((x, i) =>
-      `<div class="stop ${i < si ? "on" : ""}${i === si ? " now" : ""}"><i></i>${x.n}<small>${x.at === 0 ? "štart" : "deň " + x.at}</small></div>`).join("");
+      `<div class="stop ${i < si ? "on" : ""}${i === si ? " now" : ""}"><i></i>${x.n}${tags(i)}<small>${x.at === 0 ? "štart" : "deň " + x.at}</small></div>`).join("");
+    $("path").onclick = e => { const t = e.target.closest("[data-rb]"); if (t) openReveal(fromIso(t.dataset.rb), docs); };
     requestAnimationFrame(() => { const p = $("path"), st = p.querySelectorAll(".stop"); $("pathFill").style.height = Math.max(0, p.offsetHeight - st[si].offsetTop - 20) + "px"; });
     $("progBar").style.width = (gd / CH * 100) + "%"; $("progTxt").textContent = gd + " / " + CH;
 
