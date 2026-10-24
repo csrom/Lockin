@@ -86,6 +86,7 @@
     $("tabs").hidden = !inApp;
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
     if (view !== "vystup") $("stageVid").pause();
+    if (view !== "intro") $("tapGate").hidden = true;
     const vid = $("heroVideo"); if (vid) { if (view === "intro") heroPlay(); else vid.pause(); }
     window.scrollTo(0, 0);
   }
@@ -278,7 +279,7 @@
     const sv = $("stageVid"); sv.pause(); sv.hidden = true;
     $("stagePlay").hidden = si < 1;
     $("stagePlay").onclick = () => {
-      sv.src = si === 4 ? "/media/vystup.mp4" : "/media/odmena" + si + ".mp4";
+      sv.src = si === 4 ? "/media/vystup-v3.mp4" : "/media/odmena" + si + ".mp4";
       sv.poster = si === 4 ? "/media/vystup-poster.webp" : "/media/odmena" + si + ".webp";
       sv.hidden = false; sv.muted = false; $("stagePlay").hidden = true;
       sv.play().catch(() => { sv.muted = true; sv.play(); });
@@ -320,7 +321,7 @@
     const slot = Math.min(4, Math.floor(dayIdx(bb, docs) / 7));
     $("mImg").style.backgroundImage = `url("${STAGES[Math.min(4, slot + 1)].img}")`;
     const mv = $("mVid");
-    mv.src = slot === 4 ? "/media/vystup.mp4" : "/media/odmena" + (slot + 1) + ".mp4";
+    mv.src = slot === 4 ? "/media/vystup-v3.mp4" : "/media/odmena" + (slot + 1) + ".mp4";
     mv.poster = slot === 4 ? "/media/vystup-poster.webp" : "/media/odmena" + (slot + 1) + ".webp";
     mv.muted = false; $("mReplay").hidden = true;
     mv.play().catch(() => { mv.muted = true; mv.play().catch(() => {}); });
@@ -349,21 +350,32 @@
   function heroPlay() {
     const v = $("heroVideo");
     v.muted = !heroWantSound;
-    v.play().then(heroUi).catch(() => { v.muted = true; heroUi(); v.play().catch(() => {}); });
+    v.play().then(() => { $("tapGate").hidden = true; heroUi(); }).catch(() => {
+      // Prehliadač nedovolil zvuk bez interakcie: video ide potichu a ukážeme výzvu na ťuknutie.
+      v.muted = true; heroUi(); v.play().catch(() => {});
+      $("tapGate").hidden = !heroWantSound;
+    });
   }
-  const unlock = e => {
-    if (e && e.target && e.target.closest && e.target.closest("#heroSound")) return;
+  function heroUnmute() {
     const v = $("heroVideo");
-    if (heroWantSound && v.muted && !$("v-intro").hidden) { v.muted = false; v.play().catch(() => {}); heroUi(); }
-    ["pointerdown", "keydown", "touchstart"].forEach(t => document.removeEventListener(t, unlock, true));
+    $("tapGate").hidden = true;
+    if (!heroWantSound || !v.muted || $("v-intro").hidden) return;
+    v.muted = false; v.currentTime = 0; v.play().catch(() => {}); heroUi();
+  }
+  $("tapGate").onclick = heroUnmute;
+  // Záloha: prvá interakcia kdekoľvek na úvode zapne zvuk.
+  const unlock = e => {
+    if (e.target.closest && e.target.closest("#heroSound, #tapGate")) return;
+    const v = $("heroVideo");
+    if (heroWantSound && v.muted && !$("v-intro").hidden) { $("tapGate").hidden = true; v.muted = false; v.play().catch(() => {}); heroUi(); }
   };
-  ["pointerdown", "keydown", "touchstart"].forEach(t => document.addEventListener(t, unlock, true));
+  ["pointerdown", "mousedown", "touchend", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, once: false }));
   $("heroSound").onclick = () => {
     const v = $("heroVideo");
     heroWantSound = v.muted;
     try { localStorage.setItem("lockinSound", heroWantSound ? "on" : "off"); } catch (e) {}
     v.muted = !heroWantSound; if (heroWantSound) v.play().catch(() => {});
-    heroUi();
+    $("tapGate").hidden = true; heroUi();
   };
 
   // ─── SKUPINA ──────────────────────────────────────────

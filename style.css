@@ -172,3 +172,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 .stage-img .ov{z-index:2}
 .gtag{position:relative;z-index:2;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dawn);background:transparent;border:1px solid var(--dawn);border-radius:20px;padding:6px 10px;cursor:pointer;margin-left:-6px}
 .gtag:hover,.gtag:focus-visible{background:var(--dawn);color:var(--bg);outline:none}
+.tapgate{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;color:#e6edf5;background:radial-gradient(circle at 50% 45%,rgba(10,13,18,.15),rgba(10,13,18,.72));font-family:var(--body)}
+.tapgate[hidden]{display:none}
+.tapgate .ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(233,161,91,.7);background:rgba(10,13,18,.55);box-shadow:0 0 0 0 rgba(233,161,91,.5);animation:pulse 1.8s ease-out infinite}
+.tapgate .ring svg{width:36px;height:36px;color:var(--dawn)}
+.tapgate b{font-family:var(--display);font-weight:900;font-size:34px;letter-spacing:.06em;text-transform:uppercase;margin-top:8px}
+.tapgate small{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#b9c6d4}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(233,161,91,.55)}100%{box-shadow:0 0 0 26px rgba(233,161,91,0)}}
+@media (prefers-reduced-motion:reduce){.tapgate .ring{animation:none}}
