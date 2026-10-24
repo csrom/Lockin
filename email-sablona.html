@@ -1,0 +1,17 @@
+<!-- Supabase → Authentication → Emails → Templates.
+     Vlož do "Magic Link" aj do "Confirm signup" (pole Body).
+     Subject: Lock In · tvoj kód {{ .Token }} -->
+<div style="margin:0;padding:32px 16px;background:#0a0d12;font-family:Arial,Helvetica,sans-serif;color:#d9e2ec">
+  <div style="max-width:440px;margin:0 auto;background:#121821;border:1px solid #243041;border-radius:14px;padding:32px 28px">
+    <div style="font-size:13px;letter-spacing:4px;color:#6f9cc9;font-weight:bold">LOCK IN</div>
+    <h1 style="margin:14px 0 8px;font-size:26px;line-height:1.2;color:#ffffff">Tvoj vstupný kód</h1>
+    <p style="margin:0 0 22px;font-size:15px;line-height:1.5;color:#9fb0c2">Zadaj ho v appke a si dnu. Platí 1 hodinu.</p>
+    <div style="font-size:38px;letter-spacing:10px;font-weight:bold;color:#e9a15b;background:#0a0d12;border:1px solid #243041;border-radius:10px;padding:18px 0;text-align:center">{{ .Token }}</div>
+    <p style="margin:22px 0 6px;font-size:14px;line-height:1.5;color:#9fb0c2">Alebo klikni sem, ak otváraš mail v tom istom prehliadači:</p>
+    <p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="color:#6f9cc9;font-size:14px">Vstúpiť do Lock In</a></p>
+    <p style="margin:0;font-size:15px;line-height:1.5;color:#d9e2ec;font-style:italic">„Buď bdelý, stoj pevne vo viere, buď mužný a silný.“</p>
+    <p style="margin:4px 0 0;font-size:12px;color:#6b7c8f">1 Kor 16,13</p>
+    <hr style="border:0;border-top:1px solid #243041;margin:24px 0 14px">
+    <p style="margin:0;font-size:12px;line-height:1.5;color:#6b7c8f">Ak si o kód nežiadal, tento mail ignoruj.</p>
+  </div>
+</div>

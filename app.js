@@ -143,17 +143,42 @@
 
   // ─── Úvod a prihlásenie ───────────────────────────────
   $("goLogin").onclick = $("goLogin2").onclick = () => { show("login"); $("lEmail").focus(); };
-  $("loginBack").onclick = () => show("intro");
-  $("loginForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    const email = $("lEmail").value.trim();
+  let loginEmail = "";
+  async function sendCode(email) {
     $("loginBtn").disabled = true;
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: cfg.siteUrl || location.origin } });
     $("loginBtn").disabled = false;
-    $("loginMsg").textContent = error
-      ? "Odkaz sa nepodarilo poslať: " + error.message
-      : "Hotovo. Otvor e-mail na " + email + " a klikni na odkaz. Ak ho nevidíš, pozri spam.";
+    if (error) {
+      const wait = /after (\d+) seconds/.exec(error.message);
+      $("loginMsg").textContent = wait ? "Počkaj " + wait[1] + " s a skús znova." : "Kód sa nepodarilo poslať: " + error.message;
+      return false;
+    }
+    return true;
+  }
+  $("loginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    loginEmail = $("lEmail").value.trim();
+    if (!(await sendCode(loginEmail))) return;
+    $("loginForm").hidden = true; $("codeForm").hidden = false;
+    $("codeMsg").textContent = "Kód sme poslali na " + loginEmail + ". Ak ho nevidíš, pozri spam.";
+    $("lCode").value = ""; $("lCode").focus();
   });
+  $("codeForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const token = $("lCode").value.replace(/\D/g, "");
+    $("codeBtn").disabled = true;
+    const { error } = await sb.auth.verifyOtp({ email: loginEmail, token, type: "email" });
+    $("codeBtn").disabled = false;
+    if (error) $("codeMsg").textContent = "Kód nesedí alebo už vypršal. Skús ho znova, alebo si pošli nový.";
+  });
+  $("codeAgain").onclick = async () => {
+    if (await sendCode(loginEmail)) $("codeMsg").textContent = "Nový kód je na ceste na " + loginEmail + ".";
+    else $("codeMsg").textContent = $("loginMsg").textContent;
+  };
+  $("loginBack").onclick = () => {
+    if (!$("codeForm").hidden) { $("codeForm").hidden = true; $("loginForm").hidden = false; return; }
+    show("intro");
+  };
 
   $("joinForm").addEventListener("submit", async e => {
     e.preventDefault();
