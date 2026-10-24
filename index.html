@@ -22,6 +22,7 @@
     <div class="hero">
       <video class="hero-video" id="heroVideo" src="/media/vystup.mp4" poster="/media/vystup-poster.webp" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
       <div class="fade"></div>
+      <button class="sound" id="heroSound" type="button" aria-label="Pustiť video so zvukom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
       <div class="copy pad">
         <h1 class="disp">Lock In</h1>
         <div class="label sub">30 dní disciplíny</div>
@@ -33,7 +34,7 @@
       <button class="link" id="goLogin2">Už mám účet</button>
       <ol class="steps">
         <li><div><b>Každý deň 6 bodov</b><span>Čistý deň, cvičenie, modlitba alebo Písmo, deep work, studená sprcha a scrollovanie najviac 30 minút.</span></div></li>
-        <li><div><b>Jeden bod môžeš vynechať</b><span>Dobrý deň je 5 zo 6. Nedeľa je voľná, stačí 1 bod.</span></div></li>
+        <li><div><b>Jeden bod môžeš vynechať</b><span>Úspešný deň je 5 zo 6. Nedeľa je voľná, stačí 1 bod.</span></div></li>
         <li><div><b>30 dní, začni kedykoľvek</b><span>Týždeň sa ráta 7 dní od tvojho štartu. Za každý zamknutý týždeň je tajná odmena.</span></div></li>
         <li><div><b>Sám, vo dvojici alebo v skupine</b><span>S parťákom zadáte rovnaký kód. Skupiny medzi sebou súperia.</span></div></li>
       </ol>
@@ -102,6 +103,8 @@
   <section id="v-vystup" hidden class="pad">
     <div class="stage">
       <div class="stage-img" id="stageImg">
+        <video class="stage-vid" id="stageVid" playsinline preload="none" hidden></video>
+        <button class="play" id="stagePlay" type="button" hidden aria-label="Prehrať video etapy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button>
         <div class="ov"><h2 class="disp" id="stageTitle"></h2><div class="v" id="stageVerse"></div></div>
       </div>
       <div class="txt" id="stageText"></div>
@@ -114,11 +117,14 @@
   <!-- SKUPINA -->
   <section id="v-skupina" hidden class="pad">
     <div class="h2">Súboj skupín</div>
-    <div class="label">Percento dobrých dní za posledných 7 dní</div>
+    <div class="label">Percento úspešných dní za posledných 7 dní</div>
     <div class="card board" id="groups"><div class="row"><span></span><span class="nm"><small>Načítavam…</small></span><span></span></div></div>
     <div class="h2 small">Dvojice</div>
-    <div class="label">Dni, keď boli dobrí obaja, za posledných 30 dní</div>
+    <div class="label">Dni, keď boli úspešní obaja, za posledných 30 dní</div>
     <div class="card board" id="pairs"></div>
+    <div class="h2 small">Jednotlivci</div>
+    <div class="label">Úspešné dni v aktuálnej výzve · percento za posledných 7 dní</div>
+    <div class="card board" id="players"></div>
   </section>
 
   <!-- PROFIL -->
@@ -134,9 +140,9 @@
     <details class="rulebox">
       <summary>Prečítaj si pravidlá</summary>
       <ul class="rules">
-        <li>Dobrý deň je aspoň 5 zo 6 bodov. V nedeľu stačí 1 bod.</li>
+        <li>Úspešný deň je aspoň 5 zo 6 bodov. V nedeľu stačí 1 bod.</li>
         <li>Výzva trvá 30 dní od tvojho štartu: štyri týždne a dvojdňové finále.</li>
-        <li>Týždeň zamkneš, keď máš všetky dni dobré. Odmena sa odhalí až po jeho skončení.</li>
+        <li>Týždeň zamkneš, keď máš všetky dni úspešné. Odmena sa odhalí až po jeho skončení.</li>
         <li>Vo dvojici padne odmena, len keď týždeň zamknete obaja. Dvojica začína dňom, keď sa pripojí druhý.</li>
         <li>Odmeny: 1. týždeň večer pri hre, 2. otužovanie alebo sauna, 3. list sebe o rok, 4. svitanie. Finále: výbeh na vrchol alebo túra.</li>
         <li>Nedeľa večer: krátky hovor s parťákom, čo bolo najťažšie a čo ďalej.</li>
@@ -153,6 +159,7 @@
         <button class="btn ghost" data-shift="1">Štart +1 deň</button>
         <button class="btn ghost" data-shift="0">Štart dnes</button>
       </div>
+      <button class="btn" id="aWeek">Preskočiť týždeň (štart −7 a odklikni všetko)</button>
       <button class="btn ghost" id="aFill">Odkliknúť všetky dni od štartu po dnešok</button>
       <button class="btn ghost" id="aHide">Znova skryť odhalené odmeny</button>
       <button class="btn ghost" id="aClear">Vymazať moje odkliknutia</button>
@@ -174,7 +181,7 @@
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="card sheet reveal">
-    <div class="sheet-img" id="mImg"></div>
+    <div class="sheet-img" id="mImg"><video id="mVid" playsinline preload="auto"></video><button class="play" id="mReplay" type="button" hidden aria-label="Prehrať znova"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button></div>
     <div class="in">
       <span class="label" id="mLabel"></span>
       <h3 id="mTitle"></h3>

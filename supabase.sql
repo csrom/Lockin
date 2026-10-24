@@ -32,7 +32,7 @@ returns text language sql stable security definer set search_path = public as $$
   select nullif(lower(trim(pair_code)), '') from public.profiles where id = auth.uid()
 $$;
 
--- dobrý deň: aspoň 5 zo 6 bodov, v nedeľu stačí 1
+-- úspešný deň: aspoň 5 zo 6 bodov, v nedeľu stačí 1
 create or replace function public.is_good(h jsonb, d date)
 returns boolean language sql immutable set search_path = public as $$
   select (select count(*) from jsonb_each(h) where value = 'true'::jsonb)
@@ -68,7 +68,7 @@ create policy days_update on public.days for update to authenticated using (user
 create policy days_delete on public.days for delete to authenticated using (user_id = auth.uid());
 
 -- ─── Rebríčky (len súhrny) ───────────────────────────────
--- Skupiny: percento dobrých dní za posledných 7 dní; každému sa rátajú len dni od jeho štartu.
+-- Skupiny: percento úspešných dní za posledných 7 dní; každému sa rátajú len dni od jeho štartu.
 create or replace function public.leaderboard_groups()
 returns table (group_name text, members int, pct int)
 language sql stable security definer set search_path = public as $$
@@ -88,7 +88,7 @@ language sql stable security definer set search_path = public as $$
   limit 50
 $$;
 
--- Dvojice: počet dní za posledných 30, keď boli dobrí obaja (od štartu neskoršieho z nich).
+-- Dvojice: počet dní za posledných 30, keď boli úspešní obaja (od štartu neskoršieho z nich).
 create or replace function public.leaderboard_pairs()
 returns table (names text, group_name text, days int)
 language sql stable security definer set search_path = public as $$
@@ -159,3 +159,21 @@ revoke all on function public.is_admin()       from public, anon;
 revoke all on function public.admin_overview() from public, anon;
 grant execute on function public.is_admin()       to authenticated;
 grant execute on function public.admin_overview() to authenticated;
+
+-- Jednotlivci: úspešné dni od štartu (max. 30) a percento za posledných 7 dní.
+create or replace function public.leaderboard_players()
+returns table (nick text, group_name text, days int, pct int)
+language sql stable security definer set search_path = public as $$
+  select p.nick, nullif(trim(p.group_name), ''),
+         (select count(*) from public.days d
+           where d.user_id = p.id and d.day >= p.start_date and d.day < p.start_date + 30
+             and d.day <= current_date and public.is_good(d.habits, d.day))::int,
+         coalesce((select round(100.0 * count(*) filter (where public.is_good(x.habits, g::date)) / nullif(count(*), 0))
+           from generate_series(greatest(p.start_date, current_date - 6), current_date, interval '1 day') g
+           left join public.days x on x.user_id = p.id and x.day = g::date), 0)::int
+  from public.profiles p
+  order by 3 desc, 4 desc, p.created_at
+  limit 100
+$$;
+revoke all on function public.leaderboard_players() from public, anon;
+grant execute on function public.leaderboard_players() to authenticated;

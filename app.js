@@ -31,7 +31,7 @@
     ["Výbeh na vrchol alebo túra", "Finále 30 dní. Spolu hore na vrchol, debrief na vrchole a otvorenie listov."]
   ];
   const GAMES = [
-    ["Counter-Strike 1.6", "https://cs-online.club/en/servers", "klasika, servery v Európe, bez inštalácie"],
+    ["Counter-Strike 1.6", "https://play-cs.com/en/servers", "klasika v prehliadači, bez inštalácie"],
     ["Need for Speed Underground 2", "https://nfsu2.xyz/", "fanúšikovská verzia v prehliadači, online s kamošmi"],
     ["Azeroth Survivors", "https://wow.aethus.pl/", "roguelike vo svete WoW, fanúšikovský projekt, zadarmo"],
     ["World of ClaudeCraft", "https://worldofclaudecraft.com/", "MMORPG vo štýle WoW vytvorené s AI, zadarmo"]
@@ -85,6 +85,7 @@
     const inApp = ["dnes", "vystup", "skupina", "profil"].includes(view);
     $("tabs").hidden = !inApp;
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
+    if (view !== "vystup") $("stageVid").pause();
     const vid = $("heroVideo"); if (vid) { if (view === "intro") vid.play().catch(() => {}); else vid.pause(); }
     window.scrollTo(0, 0);
   }
@@ -227,7 +228,7 @@
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
     $("scoreN").textContent = c + "/6";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
-    cap.textContent = future ? "tento deň ešte nezačal" : g ? "dobrý deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do dobrého dňa");
+    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
     let wk = "";
     for (let i = 0; i < L; i++) {
       const x = add(b, i), fut = x > today, cl = good(doc, x) ? "good" : cnt(doc, x) > 0 ? "part" : "";
@@ -241,8 +242,8 @@
       <span class="t">${h.t}</span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
-    $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále dobrý. " +
-      (partner ? "Napíš parťákovi a zajtra ideš ďalej." : "Zajtra ideš ďalej. Každý ďalší dobrý deň ťa ťahá dopredu.");
+    $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
+      (partner ? "Napíš parťákovi a zajtra ideš ďalej." : "Zajtra ideš ďalej. Každý ďalší úspešný deň ťa ťahá dopredu.");
   }
   $("whoMe").onclick = () => { viewing = "me"; renderDnes(); };
   $("whoPartner").onclick = () => { viewing = "partner"; renderDnes(); };
@@ -274,6 +275,14 @@
     const docs = pm(), gd = goodInCycle(docs), si = STAGES.filter(s => gd >= s.at).length - 1, s = STAGES[si];
     const wk = Math.floor(dayIdx(nowOrStart(docs), docs) / 7);
     $("stageImg").style.backgroundImage = `url("${s.img}")`;
+    const sv = $("stageVid"); sv.pause(); sv.hidden = true;
+    $("stagePlay").hidden = si < 1;
+    $("stagePlay").onclick = () => {
+      sv.src = "/media/odmena" + si + ".mp4"; sv.poster = "/media/odmena" + si + ".webp";
+      sv.hidden = false; sv.muted = false; $("stagePlay").hidden = true;
+      sv.play().catch(() => { sv.muted = true; sv.play(); });
+    };
+    sv.onended = () => { $("stagePlay").hidden = false; };
     $("stageTitle").textContent = (si === 4 ? "Vrchol" : "Týždeň " + Math.min(wk + 1, 4)) + " · " + s.theme;
     $("stageVerse").textContent = s.v;
     $("stageText").textContent = s.t;
@@ -292,12 +301,15 @@
       const L = blockLen(b, docs), end = add(b, L); let ok = 0;
       for (let i = 0; i < L; i++) { const x = add(b, i); if (x <= today && docs.every(dc => good(dc, x))) ok++; }
       sec.className = "card secret";
-      sec.innerHTML = `<div class="q" aria-hidden="true">?</div><b>Tajná odmena</b><div class="hint">Odhalí sa ${DNL[(end.getDay() + 6) % 7]}, ak zamkne${partner ? "te obaja" : "š"} týždeň. Zatiaľ ${ok}/${L} dobrých dní${partner ? " spolu" : ""}.</div>`;
+      sec.innerHTML = `<div class="q" aria-hidden="true">?</div><b>Tajná odmena</b><div class="hint">Odhalí sa ${DNL[(end.getDay() + 6) % 7]}, ak zamkne${partner ? "te obaja" : "š"} týždeň. Zatiaľ ${ok}/${L} úspešných dní${partner ? " spolu" : ""}.</div>`;
     }
   }
   function openReveal(bb, docs) {
     const slot = Math.min(4, Math.floor(dayIdx(bb, docs) / 7));
     $("mImg").style.backgroundImage = `url("${STAGES[Math.min(4, slot + 1)].img}")`;
+    const mv = $("mVid"); mv.src = "/media/odmena" + (slot + 1) + ".mp4"; mv.poster = "/media/odmena" + (slot + 1) + ".webp";
+    mv.muted = false; $("mReplay").hidden = true;
+    mv.play().catch(() => { mv.muted = true; mv.play().catch(() => {}); });
     $("mLabel").textContent = slot === 4 ? "Finále" : "Odmena · týždeň " + (slot + 1);
     $("mTitle").textContent = ROT[slot][0]; $("mText").textContent = ROT[slot][1];
     $("mGames").hidden = !ROT[slot][2];
@@ -307,11 +319,28 @@
     me.seen = Object.assign({}, me.seen, { [iso(bb)]: true });
     sb.from("profiles").update({ seen: me.seen }).eq("id", me.id).then(() => {});
   }
-  $("mClose").onclick = () => { $("modal").hidden = true; renderVystup(); };
+  $("mClose").onclick = () => { $("mVid").pause(); $("modal").hidden = true; renderVystup(); };
+  $("mVid").onended = () => { $("mReplay").hidden = false; };
+  $("mReplay").onclick = () => { const v = $("mVid"); v.currentTime = 0; v.muted = false; v.play(); $("mReplay").hidden = true; };
+
+  // Úvodné video: zvuk po kliknutí (prehliadače bez kliknutia zvuk nepustia)
+  $("heroSound").onclick = () => {
+    const v = $("heroVideo"), on = v.muted;
+    v.muted = !on; if (on) { v.currentTime = 0; v.play(); }
+    $("heroSound").classList.toggle("on", on);
+    $("heroSound").setAttribute("aria-label", on ? "Stlmiť zvuk" : "Pustiť video so zvukom");
+  };
 
   // ─── SKUPINA ──────────────────────────────────────────
   async function renderSkupina() {
-    const [g, p] = await Promise.all([sb.rpc("leaderboard_groups"), sb.rpc("leaderboard_pairs")]);
+    const [g, p, pl] = await Promise.all([sb.rpc("leaderboard_groups"), sb.rpc("leaderboard_pairs"), sb.rpc("leaderboard_players")]);
+    if (pl.error) $("players").innerHTML = `<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>`;
+    else {
+      const rows = pl.data || [];
+      $("players").innerHTML = rows.map((x, i) => { const mine = x.nick === me.nick && norm(x.group_name) === norm(me.group_name);
+        return `<div class="row${i === 0 ? " top" : ""}${mine ? " me" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(x.nick)}${mine ? '<span class="tag">ty</span>' : ""}<small>${esc(x.group_name || "sólo")} · ${x.pct} % za 7 dní</small></span><span class="sc">${x.days}/30</span></div>`; }).join("")
+        || `<div class="row"><span></span><span class="nm"><small>Zatiaľ nikto.</small></span><span></span></div>`;
+    }
     const mg = norm(me.group_name);
     if (g.error) $("groups").innerHTML = `<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>`;
     else {
@@ -355,6 +384,22 @@
     if (error) return aMsg("Nepodarilo sa: " + error.message);
     me.start_date = start; aMsg("Štart posunutý na " + fromIso(start).toLocaleDateString("sk-SK")); renderAdmin();
   });
+  async function fillAll() {
+    const all = Object.fromEntries(HABITS.map(h => [h.id, true]));
+    const rows = [];
+    for (let d = fromIso(me.start_date); d <= today; d = add(d, 1)) rows.push({ user_id: me.id, day: iso(d), habits: all, updated_at: new Date().toISOString() });
+    const { error } = await sb.from("days").upsert(rows);
+    if (error) throw error;
+    await loadAll(); return rows.length;
+  }
+  $("aWeek").onclick = async () => {
+    const start = iso(add(fromIso(me.start_date), -7));
+    const { error } = await sb.from("profiles").update({ start_date: start }).eq("id", me.id);
+    if (error) return aMsg("Nepodarilo sa: " + error.message);
+    me.start_date = start;
+    try { await fillAll(); } catch (e) { return aMsg("Nepodarilo sa: " + e.message); }
+    aMsg("Si na " + (between(fromIso(start), today) + 1) + ". dni, všetko odkliknuté. Choď do Výstupu a odhaľ odmenu."); renderAdmin();
+  };
   $("aFill").onclick = async () => {
     const all = Object.fromEntries(HABITS.map(h => [h.id, true]));
     const rows = [];
