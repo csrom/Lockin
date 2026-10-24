@@ -111,12 +111,18 @@
       <div class="week" id="week"></div>
     </div>
     <div class="pad">
+      <div class="done" id="doneBox" hidden>
+        <div class="seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div><b id="doneTitle">Deň zamknutý</b><span id="doneSub"></span></div>
+        <button class="link" id="doneEdit" type="button">Upraviť</button>
+      </div>
       <div class="list" id="list"></div>
       <p class="hint saved" id="savedMsg" aria-live="polite"></p>
       <button class="btn ghost fall" id="fallBtn">Spadol som. Čo teraz?</button>
       <div class="note" id="fallNote" hidden>
         <p class="verse">„Spravodlivý padne sedem ráz a zas vstane.“<cite>Prís 24,16</cite></p>
         <span id="fallText"></span>
+        <button class="btn ghost" id="fallChat" type="button">💬 Napíš chalanom do chatu</button>
       </div>
     </div>
   </section>
@@ -136,17 +142,31 @@
     <div class="card secret" id="secret"></div>
   </section>
 
+  <!-- CHAT -->
+  <section id="v-chat" hidden>
+    <div class="chat-head pad">
+      <div class="h2">Chat</div>
+      <div class="rooms" id="rooms" role="tablist" aria-label="Miestnosti"></div>
+    </div>
+    <div class="msgs pad" id="msgs" aria-live="polite"></div>
+    <form class="composer" id="chatForm">
+      <input id="chatIn" maxlength="500" autocomplete="off" placeholder="Napíš chalanom…" aria-label="Správa">
+      <button class="send" type="submit" aria-label="Odoslať"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l16-8-6 16-2-7z"/></svg></button>
+    </form>
+  </section>
+
   <!-- SKUPINA -->
   <section id="v-skupina" hidden class="pad">
-    <div class="h2">Súboj skupín</div>
-    <div class="label">Percento úspešných dní za posledných 7 dní</div>
-    <div class="card board" id="groups"><div class="row"><span></span><span class="nm"><small>Načítavam…</small></span><span></span></div></div>
-    <div class="h2 small">Dvojice</div>
-    <div class="label">Dni, keď boli úspešní obaja, za posledných 30 dní</div>
-    <div class="card board" id="pairs"></div>
-    <div class="h2 small">Jednotlivci</div>
-    <div class="label">Úspešné dni v aktuálnej výzve · percento za posledných 7 dní</div>
-    <div class="card board" id="players"></div>
+    <div class="h2">Rebríčky</div>
+    <div class="seg" role="tablist" aria-label="Rebríček">
+      <button role="tab" data-lb="players" aria-selected="true">Jednotlivci</button>
+      <button role="tab" data-lb="pairs" aria-selected="false">Dvojice</button>
+      <button role="tab" data-lb="groups" aria-selected="false">Skupiny</button>
+    </div>
+    <div class="label lbnote" id="lbNote"></div>
+    <div class="podium" id="podium"></div>
+    <div class="mypos" id="myPos" hidden></div>
+    <div class="card board" id="lbList"></div>
   </section>
 
   <!-- PROFIL -->
@@ -202,7 +222,8 @@
 <nav class="tabs" id="tabs" hidden aria-label="Hlavné menu"><div class="in">
   <button data-tab="dnes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M9 15l2 2 4-4"/></svg>Dnes</button>
   <button data-tab="vystup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20l7-12 4 6 3-4 6 10z"/><path d="M9 8l1.5 2.5"/></svg>Výstup</button>
-  <button data-tab="skupina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c.5-3.5 3-5 6-5s5.5 1.5 6 5M15 14.5c2.6 0 4.6 1.3 5 4"/></svg>Skupina</button>
+  <button data-tab="skupina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Rebríčky</button>
+  <button data-tab="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>Chat<i class="dot" id="chatDot" hidden></i></button>
   <button data-tab="profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/></svg>Profil</button>
 </div></nav>
 
@@ -224,6 +245,17 @@
   <button class="x" id="iosTipX" type="button" aria-label="Zavrieť">✕</button>
   <b>Pridaj si Lock In na plochu</b>
   <span>V Safari ťukni na <b>⋯</b> dole, potom <b>Zdieľať</b>, <b>Zobraziť viac</b> a <b>Pridať na plochu</b>.</span>
+</div>
+<div class="win" id="win" hidden role="dialog" aria-modal="true" aria-labelledby="winT">
+  <div class="rays" aria-hidden="true"></div>
+  <div class="win-in">
+    <div class="seal big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path class="ck" d="M9 12l2 2 4-4"/></svg></div>
+    <div class="label" id="winK">Deň 1 / 30</div>
+    <h2 class="disp" id="winT">Úspešný<br>deň</h2>
+    <p class="verse" id="winV"></p>
+    <div class="streak" id="winS"></div>
+    <button class="btn" id="winClose">Lock in</button>
+  </div>
 </div>
 <div class="loading" id="loading">Načítavam…</div>
 

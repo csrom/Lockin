@@ -95,10 +95,10 @@
   };
 
   // ─── Navigácia ────────────────────────────────────────
-  const VIEWS = ["intro", "login", "join", "dnes", "vystup", "skupina", "profil"];
+  const VIEWS = ["intro", "login", "join", "dnes", "vystup", "skupina", "chat", "profil"];
   function show(view) {
     VIEWS.forEach(v => $("v-" + v).hidden = v !== view);
-    const inApp = ["dnes", "vystup", "skupina", "profil"].includes(view);
+    const inApp = ["dnes", "vystup", "skupina", "chat", "profil"].includes(view);
     $("tabs").hidden = !inApp;
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
     if (view !== "vystup") $("stageVid").pause();
@@ -159,7 +159,7 @@
       if (isAdmin === null) { const { data } = await sb.rpc("is_admin"); isAdmin = data === true; }
     const ok = await loadAll();
       if (!ok) { show("join"); return; }
-      sel = null; render(); show(tab);
+      sel = null; render(); show(tab); chatBadge().catch(() => {});
     } catch (e) {
       console.error(e);
       show("intro");
@@ -261,6 +261,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
+    const folded = g && !future && !expanded[iso(d)];
+    $("list").hidden = folded; $("doneBox").hidden = !folded;
+    if (folded) {
+      $("doneTitle").textContent = ro ? "Parťák zamkol deň" : "Deň zamknutý";
+      $("doneSub").textContent = c + "/6 bodov" + (d.getDay() === 0 ? " · voľná nedeľa" : "") + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade");
+      $("doneEdit").hidden = ro;
+    }
     deadlineUi();
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
     $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
@@ -278,9 +285,15 @@
     if (viewing === "partner") return;
     const k = iso(sel), mine = days[me.id];
     mine[k] = Object.assign({}, mine[k]);
+    const was = good(docOf(me), sel);
     if (e.target.dataset.h) mine[k][e.target.dataset.h] = e.target.checked;
     if (e.target.hasAttribute("data-dur")) mine[k].dur = e.target.value;
-    renderDnes();
+    const now = good(docOf(me), sel);
+    if (!was && now) {
+      expanded[k] = false;
+      $("list").classList.add("fold");
+      setTimeout(() => { $("list").classList.remove("fold"); renderDnes(); celebrate(sel); }, 420);
+    } else { if (was && !now) expanded[k] = true; renderDnes(); }
     $("savedMsg").textContent = "Ukladám…";
     clearTimeout(timers[k]);
     timers[k] = setTimeout(async () => {
@@ -288,6 +301,36 @@
       $("savedMsg").textContent = error ? "Neuložilo sa, skús to znova." : "Uložené";
     }, 450);
   });
+  // ─── Úspešný deň: zbalenie a oslava ───
+  const expanded = {};
+  const dniWord = n => n === 1 ? "deň" : n >= 2 && n <= 4 ? "dni" : "dní";
+  function streakOf(doc) {
+    let n = 0, x = new Date(today);
+    if (!good(doc, x)) x = add(x, -1);
+    while (good(doc, x) && x >= fromIso(doc.start)) { n++; x = add(x, -1); }
+    return n;
+  }
+  $("doneEdit").onclick = () => { expanded[iso(sel)] = true; renderDnes(); };
+  function celebrate(d) {
+    const docs = pm(), doc = docOf(me);
+    $("winK").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH;
+    const st = STAGES.filter(x => goodInCycle(docs) >= x.at).length - 1;
+    $("winV").textContent = STAGES[Math.max(0, st)].v;
+    const k = streakOf(doc);
+    $("winS").textContent = k > 1 ? "🔥 " + k + " " + dniWord(k) + " v rade" : "Prvý úspešný deň. Takto ďalej.";
+    const w = $("win"); w.querySelectorAll(".spark").forEach(x => x.remove());
+    const cols = ["#e9a15b", "#6f9cc9", "#ffffff", "#b9c6d4"];
+    for (let i = 0; i < 46; i++) {
+      const sp = document.createElement("i"), a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
+      sp.className = "spark"; sp.style.background = cols[i % 4];
+      sp.style.setProperty("--dx", Math.cos(a) * r + "px"); sp.style.setProperty("--dy", Math.sin(a) * r + "px");
+      sp.style.setProperty("--r", (Math.random() * 720 - 360) + "deg"); sp.style.animationDelay = (0.35 + Math.random() * 0.25) + "s";
+      w.appendChild(sp);
+    }
+    w.hidden = false; $("winClose").focus();
+    try { navigator.vibrate && navigator.vibrate([40, 60, 120]); } catch (e) {}
+  }
+  $("winClose").onclick = $("win").onclick = e => { if (e.target.closest(".btn") || e.target === $("win") || e.target.classList.contains("rays")) $("win").hidden = true; };
   $("fallBtn").onclick = () => { $("fallNote").hidden = !$("fallNote").hidden; };
 
   // ─── VÝSTUP ───────────────────────────────────────────
@@ -404,29 +447,109 @@
   window.addEventListener("load", () => setTimeout(moreUi, 50));
 
   // ─── SKUPINA ──────────────────────────────────────────
+  let lbTab = "players", lbData = null;
+  document.querySelectorAll("[data-lb]").forEach(bt => bt.onclick = () => { lbTab = bt.dataset.lb; drawLb(); });
   async function renderSkupina() {
+    if (!lbData) $("lbList").innerHTML = '<div class="row"><span></span><span class="nm"><small>Načítavam…</small></span><span></span></div>';
     const [g, p, pl] = await Promise.all([sb.rpc("leaderboard_groups"), sb.rpc("leaderboard_pairs"), sb.rpc("leaderboard_players")]);
-    if (pl.error) $("players").innerHTML = `<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>`;
-    else {
-      const rows = pl.data || [];
-      $("players").innerHTML = rows.map((x, i) => { const mine = x.nick === me.nick && norm(x.group_name) === norm(me.group_name);
-        return `<div class="row${i === 0 ? " top" : ""}${mine ? " me" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(x.nick)}${mine ? '<span class="tag">ty</span>' : ""}<small>${esc(x.group_name || "sólo")} · ${x.pct} % za 7 dní</small></span><span class="sc">${x.days}/30</span></div>`; }).join("")
-        || `<div class="row"><span></span><span class="nm"><small>Zatiaľ nikto.</small></span><span></span></div>`;
-    }
-    const mg = norm(me.group_name);
-    if (g.error) $("groups").innerHTML = `<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>`;
-    else {
-      const rows = g.data || [];
-      $("groups").innerHTML = rows.length ? rows.map((x, i) => `<div class="row${i === 0 ? " top" : ""}${norm(x.group_name) === mg ? " me" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(x.group_name)}${norm(x.group_name) === mg ? '<span class="tag">tvoja</span>' : ""}<small>${x.members} ${x.members === 1 ? "člen" : x.members < 5 ? "členovia" : "členov"}</small></span><span class="sc">${x.pct} %</span></div>`).join("")
-        : `<div class="row"><span></span><span class="nm"><small>Zatiaľ žiadna skupina. Zadaj názov skupiny v profile.</small></span><span></span></div>`;
-    }
-    if (p.error) $("pairs").innerHTML = `<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>`;
-    else {
-      const rows = p.data || [], myNames = partner ? [me.nick, partner.nick] : [];
-      $("pairs").innerHTML = rows.length ? rows.map((x, i) => { const mine = myNames.length && myNames.every(n => (x.names || "").includes(n));
-        return `<div class="row${i === 0 ? " top" : ""}${mine ? " me" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(x.names)}<small>${esc(x.group_name || "")}</small></span><span class="sc">${x.days}/30</span></div>`; }).join("")
-        : `<div class="row"><span></span><span class="nm"><small>Zatiaľ žiadna kompletná dvojica.</small></span><span></span></div>`;
-    }
+    lbData = { groups: g, pairs: p, players: pl };
+    drawLb();
+  }
+  function drawLb() {
+    document.querySelectorAll("[data-lb]").forEach(bt => bt.setAttribute("aria-selected", bt.dataset.lb === lbTab));
+    if (!lbData) return;
+    const res = lbData[lbTab], mg = norm(me.group_name), myNames = partner ? [me.nick, partner.nick] : [];
+    const cfg = {
+      players: { note: "Úspešné dni v aktuálnej výzve", empty: "Zatiaľ nikto.",
+        map: x => ({ name: x.nick, sub: (x.group_name || "sólo") + " · " + x.pct + " % za 7 dní", score: x.days + "/30", val: x.days / 30, mine: x.nick === me.nick && norm(x.group_name) === mg }) },
+      pairs: { note: "Dni, keď boli úspešní obaja · posledných 30 dní", empty: "Zatiaľ žiadna kompletná dvojica. Zadajte s parťákom rovnaký kód dvojice v profile.",
+        map: x => ({ name: x.names, sub: x.group_name || "", score: x.days + "/30", val: x.days / 30, mine: myNames.length && myNames.every(n => (x.names || "").includes(n)) }) },
+      groups: { note: "Percento úspešných dní · posledných 7 dní", empty: "Zatiaľ žiadna skupina. Zadaj názov skupiny v profile.",
+        map: x => ({ name: x.group_name, sub: x.members + " " + (x.members === 1 ? "člen" : x.members < 5 ? "členovia" : "členov"), score: x.pct + " %", val: x.pct / 100, mine: norm(x.group_name) === mg }) }
+    }[lbTab];
+    $("lbNote").textContent = cfg.note;
+    if (res.error) { $("podium").innerHTML = ""; $("myPos").hidden = true; $("lbList").innerHTML = '<div class="row"><span></span><span class="nm"><small>Rebríček sa nepodarilo načítať.</small></span><span></span></div>'; return; }
+    const rows = (res.data || []).map(cfg.map);
+    const ini = n => esc((n || "?").trim().charAt(0).toUpperCase());
+    const pod = (r, i) => r ? `<div class="pod p${i + 1}${r.mine ? " me" : ""}"><div class="av">${i === 0 ? '<span class="crown">👑</span>' : ""}${ini(r.name)}</div><div class="nm">${esc(r.name)}</div><div class="sc">${esc(r.score)}</div><div class="step">${i + 1}</div></div>` : "<div></div>";
+    $("podium").innerHTML = rows.length ? pod(rows[1], 1) + pod(rows[0], 0) + pod(rows[2], 2) : "";
+    const myI = rows.findIndex(r => r.mine);
+    $("myPos").hidden = myI < 0;
+    if (myI >= 0) $("myPos").innerHTML = `<span>${lbTab === "groups" ? "Tvoja skupina" : lbTab === "pairs" ? "Vaša dvojica" : "Tvoje miesto"}</span><b>#${myI + 1}</b>`;
+    const rest = rows.slice(3);
+    $("lbList").hidden = !rows.length ? false : !rest.length;
+    $("lbList").innerHTML = !rows.length ? `<div class="row"><span></span><span class="nm"><small>${cfg.empty}</small></span><span></span></div>`
+      : rest.map((r, k) => `<div class="row${r.mine ? " me" : ""}"><span class="rk">${k + 4}</span><span class="nm">${esc(r.name)}${r.mine ? '<span class="tag">ty</span>' : ""}<small>${esc(r.sub)}</small></span><span class="sc">${esc(r.score)}</span><span class="bar"><i style="width:${Math.round(Math.min(1, r.val) * 100)}%"></i></span></div>`).join("");
+  }
+
+
+  // ─── CHAT ─────────────────────────────────────────────
+  let room = null, chatSub = null, chatMsgs = [], chatSeen = {};
+  try { chatSeen = JSON.parse(localStorage.getItem("lockinChatSeen") || "{}"); } catch (e) {}
+  const roomsOf = () => {
+    const r = [{ id: "all", n: "Všetci" }];
+    if (norm(me.group_name)) r.push({ id: "g:" + norm(me.group_name), n: me.group_name.trim() });
+    if (norm(me.pair_code)) r.push({ id: "p:" + norm(me.pair_code), n: partner ? "Ja + " + partner.nick : "Dvojica" });
+    return r;
+  };
+  function renderChat() {
+    const rs = roomsOf();
+    if (!room || !rs.some(r => r.id === room)) room = rs[rs.length > 1 ? 1 : 0].id;
+    $("rooms").innerHTML = rs.map(r => `<button role="tab" data-room="${esc(r.id)}" aria-selected="${r.id === room}">${esc(r.n)}</button>`).join("");
+    loadRoom();
+  }
+  $("rooms").onclick = e => { const b = e.target.closest("[data-room]"); if (b && b.dataset.room !== room) { room = b.dataset.room; renderChat(); } };
+  async function loadRoom() {
+    const r = room;
+    $("msgs").innerHTML = '<div class="empty">Načítavam…</div>';
+    const { data, error } = await sb.from("messages").select("id,user_id,nick,body,created_at,room").eq("room", r).order("created_at", { ascending: false }).limit(80);
+    if (r !== room) return;
+    if (error) { $("msgs").innerHTML = '<div class="empty">' + (/messages/.test(error.message || "") ? "Chat sa ešte pripravuje. Skús to o chvíľu." : "Chat sa nepodarilo načítať.") + '</div>'; return; }
+    chatMsgs = (data || []).reverse(); drawMsgs(true);
+    subscribe();
+  }
+  function subscribe() {
+    if (chatSub) { sb.removeChannel(chatSub); chatSub = null; }
+    const rooms = roomsOf().map(x => x.id);
+    chatSub = sb.channel("chat-" + me.id).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, pl => {
+      const m = pl.new; if (!rooms.includes(m.room)) return;
+      if (m.room === room && tab === "chat") { if (!chatMsgs.some(x => x.id === m.id)) { chatMsgs.push(m); drawMsgs(true); } }
+      else if (m.user_id !== me.id) $("chatDot").hidden = false;
+    }).subscribe();
+  }
+  const hhmm = t => { const d = new Date(t); return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
+  function drawMsgs(scroll) {
+    if (!chatMsgs.length) { $("msgs").innerHTML = '<div class="empty">Zatiaľ ticho. Napíš prvý — povzbuď chalanov alebo sa priznaj, že je to ťažké.</div>'; return; }
+    let last = "", h = "";
+    chatMsgs.forEach(m => {
+      const d = new Date(m.created_at), key = d.toDateString();
+      if (key !== last) { last = key; h += `<div class="daysep">${key === new Date().toDateString() ? "Dnes" : d.toLocaleDateString("sk-SK", { weekday: "long", day: "numeric", month: "numeric" })}</div>`; }
+      h += `<div class="msg${m.user_id === me.id ? " mine" : ""}"><div class="who">${esc(m.nick)}</div><div class="tx">${esc(m.body)}</div><time>${hhmm(m.created_at)}</time></div>`;
+    });
+    $("msgs").innerHTML = h;
+    chatSeen[room] = chatMsgs[chatMsgs.length - 1].created_at;
+    try { localStorage.setItem("lockinChatSeen", JSON.stringify(chatSeen)); } catch (e) {}
+    $("chatDot").hidden = true;
+    if (scroll) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  }
+  $("chatForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const body = $("chatIn").value.trim(); if (!body) return;
+    $("chatIn").value = "";
+    const { data, error } = await sb.from("messages").insert({ room, body }).select("id,user_id,nick,body,created_at,room").single();
+    if (error) { $("chatIn").value = body; alertChat("Správa sa neodoslala. Skús znova."); return; }
+    if (!chatMsgs.some(x => x.id === data.id)) { chatMsgs.push(data); drawMsgs(true); }
+  });
+  function alertChat(t) { const el = document.createElement("div"); el.className = "empty"; el.textContent = t; $("msgs").appendChild(el); setTimeout(() => el.remove(), 3000); }
+  $("fallChat").onclick = () => go("chat");
+  // Bodka pri Chate: je niečo nové od poslednej návštevy?
+  async function chatBadge() {
+    if (!me || tab === "chat") return;
+    const rs = roomsOf().map(x => x.id);
+    const { data, error } = await sb.from("messages").select("room,created_at,user_id").in("room", rs).neq("user_id", me.id).order("created_at", { ascending: false }).limit(20);
+    if (error) return;
+    $("chatDot").hidden = !(data || []).some(m => !chatSeen[m.room] || m.created_at > chatSeen[m.room]);
+    if (!chatSub) subscribe();
   }
 
   // ─── PROFIL ───────────────────────────────────────────
@@ -503,7 +626,7 @@
 
   function render() {
     if (!me) return;
-    ({ dnes: renderDnes, vystup: renderVystup, skupina: renderSkupina, profil: renderProfil })[tab]();
+    ({ dnes: renderDnes, vystup: renderVystup, skupina: renderSkupina, chat: renderChat, profil: renderProfil })[tab]();
   }
 
   // ─── APPKA NA PLOCHU (PWA) ────────────────────────────
