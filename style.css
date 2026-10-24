@@ -192,3 +192,9 @@ html{scroll-behavior:smooth}
 .deadline b{color:var(--dawn);font-weight:600}
 .install{padding:16px;margin:0 0 14px;display:flex;flex-direction:column;gap:10px}
 .install b{font-size:17px}
+.iinstall{display:flex;flex-direction:column;gap:6px;margin-top:4px;text-align:center}
+.iosTip{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;background:#121821;border:1px solid var(--dawn);border-radius:14px;padding:14px 40px 14px 16px;color:var(--fg);font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.iosTip[hidden]{display:none}
+.iosTip svg{width:18px;height:18px;vertical-align:-3px;color:var(--steel)}
+.iosTip::after{content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;background:#121821;border-right:1px solid var(--dawn);border-bottom:1px solid var(--dawn);transform:translateX(-50%) rotate(45deg)}
+.iosTip .x{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:6px}

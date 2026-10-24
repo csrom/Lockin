@@ -40,6 +40,10 @@
       <p class="verse">„Bdejte, stojte pevne vo viere, buďte mužní, buďte silní.“<cite>1 Kor 16,13</cite></p>
       <button class="btn" id="goLogin">Začať výzvu</button>
       <button class="link" id="goLogin2">Už mám účet</button>
+      <div class="iinstall" id="installIntro" hidden>
+        <button class="btn ghost" id="installBtn2" hidden>📲 Nainštalovať appku</button>
+        <p class="hint" id="installTxt2"></p>
+      </div>
       <a class="more" href="#pravidla">Pravidlá nižšie<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
       <div class="h2 small" id="pravidla">Pravidlá</div>
       <ol class="steps">
@@ -208,6 +212,11 @@
   </div>
 </div>
 
+<div class="iosTip" id="iosTip" hidden role="dialog" aria-label="Pridať na plochu">
+  <button class="x" id="iosTipX" type="button" aria-label="Zavrieť">✕</button>
+  <b>Pridaj si Lock In na plochu</b>
+  <span>Ťukni na <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> Zdieľať dole a vyber <b>Pridať na plochu</b>.</span>
+</div>
 <div class="loading" id="loading">Načítavam…</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>

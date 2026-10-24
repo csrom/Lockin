@@ -104,6 +104,7 @@
     if (view !== "vystup") $("stageVid").pause();
     if (view !== "intro") $("tapGate").hidden = true;
     setTimeout(moreUi, 0);
+    if (typeof installUi === "function") setTimeout(installUi, 0);
     const vid = $("heroVideo"); if (vid) { if (view === "intro") heroPlay(); else vid.pause(); }
     window.scrollTo(0, 0);
   }
@@ -513,16 +514,24 @@
   function installUi() {
     const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
     const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua), inApp = /FBAN|FBAV|Instagram|Messenger|Line\//.test(ua);
-    $("install").hidden = standalone;
-    if (standalone) return;
-    $("installBtn").hidden = !installEvt;
-    $("installTxt").textContent = inApp
+    const safari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua) && !inApp;
+    const txt = inApp
       ? "Otvor túto stránku v Safari (iPhone) alebo Chrome (Android) a pridaj si ju na plochu. Z Messengera sa to nedá."
-      : ios ? "V Safari ťukni na Zdieľať (štvorček so šípkou) a vyber Pridať na plochu."
-      : installEvt ? "Nainštaluj si Lock In ako appku, budeš ho mať na ploche s vlastnou ikonou."
+      : ios ? (safari ? "V Safari ťukni na Zdieľať (štvorček so šípkou) a vyber Pridať na plochu." : "Na iPhone otvor stránku v Safari, ťukni na Zdieľať a vyber Pridať na plochu.")
+      : installEvt ? "Jedno ťuknutie a máš Lock In na ploche ako appku."
       : "V prehliadači otvor menu (⋮) a vyber Inštalovať aplikáciu alebo Pridať na plochu.";
+    $("install").hidden = standalone; $("installIntro").hidden = standalone;
+    $("installBtn").hidden = $("installBtn2").hidden = standalone || !installEvt;
+    $("installTxt").textContent = txt;
+    // Na úvode: na Androide stačí tlačidlo, text len keď tlačidlo nie je k dispozícii
+    $("installTxt2").textContent = installEvt ? "" : (inApp || ios ? txt : "");
+    // iPhone v Safari: bublina so šípkou na Zdieľať, kým ju nezavrie
+    let dismissed = false; try { dismissed = localStorage.getItem("lockinIosTip") === "x"; } catch (e) {}
+    $("iosTip").hidden = !(safari && !standalone && !dismissed && !$("v-intro").hidden);
+    if (!$("iosTip").hidden) $("installTxt2").textContent = "";
   }
-  $("installBtn").onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; installUi(); };
+  $("iosTipX").onclick = () => { $("iosTip").hidden = true; try { localStorage.setItem("lockinIosTip", "x"); } catch (e) {} };
+  $("installBtn2").onclick = () => $("installBtn").onclick();
   installUi();
 
   boot();
