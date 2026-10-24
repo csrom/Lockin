@@ -59,7 +59,7 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
   function deadlineUi() {
     const el = $("deadline"); if (!el) return;
-    el.innerHTML = viewing === "partner" ? "" : "Zabudol si odkliknúť? Ťukni na deň vyššie a doplň ho aj spätne.";
+    el.innerHTML = "";
   }
   const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const fromIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
