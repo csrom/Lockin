@@ -181,10 +181,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 .tapgate small{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#b9c6d4}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(233,161,91,.55)}100%{box-shadow:0 0 0 26px rgba(233,161,91,0)}}
 @media (prefers-reduced-motion:reduce){.tapgate .ring{animation:none}}
-.more{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:20;padding:8px 14px;border-radius:20px;background:rgba(10,13,18,.7);backdrop-filter:blur(6px);transition:opacity .3s;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;width:max-content}
+.more{margin:4px auto 0;width:max-content;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;width:max-content}
 .more svg{width:22px;height:22px;color:var(--dawn);animation:bob 1.6s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.more svg{animation:none}}
 #pravidla{scroll-margin-top:16px;margin-top:22px}
 html{scroll-behavior:smooth}
-.more.gone{opacity:0;pointer-events:none}
+.more.gone{}
