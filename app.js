@@ -14,7 +14,7 @@
   const HABITS = [
     { id: "clean", t: "Čistý deň", d: "Bez porna a masturbácie" },
     { id: "move", t: "Beh alebo cvičenie", d: "Poriadne, nech tečie pot" },
-    { id: "mind", t: "Modlitba alebo Písmo", d: "Aspoň chvíľa ticha s Bohom alebo kapitola z Biblie" },
+    { id: "mind", t: "Modlitba a Písmo", d: "Oboje: modlitba aj kapitola z Biblie" },
     { id: "deep", t: "Deep work", d: "Sústredená práca bez mobilu a notifikácií", dur: true },
     { id: "cold", t: "Studená sprcha alebo ponor", d: "Aspoň 1 minúta studenej vody" },
     { id: "scroll", t: "Obmedzenie scrollovania", d: "Sociálne siete a videá max 30 min za deň" }
@@ -28,12 +28,13 @@
     { at: 30, n: "Vrchol", theme: "Víťazstvo", img: "/media/vrchol.webp", v: "„Dobrý boj som bojoval, beh som dokončil.“ 2 Tim 4,7", t: "Zapichol si kríž na vrchole. Nie si tým, kým si bol pred 30 dňami." }
   ];
   const ROT = [
-    ["Večer pri hre", "Zaslúžený večer bez výčitiek. Zahrajte si spolu klasiku priamo v prehliadači:", true],
-    ["Otužovanie alebo sauna", "Každý podľa možností, dôkaz fotkou parťákovi."],
-    ["List sebe o rok", "Napíš, kým chceš byť o rok, a pošli to parťákovi. Otvoríte ho na vrchole."],
-    ["Svitanie", "V jeden deň vstaňte pred východom slnka, vyjdite von a pošlite si fotku. Vrchol je blízko."],
-    ["Výbeh na vrchol alebo túra", "Finále 30 dní. Spolu hore na vrchol, debrief na vrchole a otvorenie listov."]
+    ["Večer pri hre", "Zaslúžený večer bez výčitiek. Zahraj si sám, s parťákom alebo s celou partiou klasiku priamo v prehliadači:", true],
+    ["Otužovanie alebo sauna", "Sám, vo dvojici alebo s partiou, každý podľa možností. Pošli fotku parťákovi alebo do chatu."],
+    ["List sebe o rok", "Napíš, kým chceš byť o rok. Ak ideš s niekým, pošlite si listy navzájom a otvorte ich na vrchole. Ak ideš sám, odlož si ho na finále."],
+    ["Svitanie", "V jeden deň vstaň pred východom slnka a vyjdi von. Sám, s parťákom alebo s partiou, fotku pošli do chatu. Vrchol je blízko."],
+    ["Výbeh na vrchol alebo túra", "Finále 30 dní. Vyjdi na vrchol sám, s parťákom alebo s celou partiou. Hore si povedz, čo ti výzva dala, a otvor list sebe."]
   ];
+
   const GAMES = [
     ["Counter-Strike 1.6", "https://play-cs.com/en/servers", "klasika v prehliadači, bez inštalácie"],
     ["Need for Speed Underground 2", "https://nfsu2.xyz/", "fanúšikovská verzia v prehliadači, online s kamošmi"],
