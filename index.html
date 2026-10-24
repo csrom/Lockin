@@ -143,6 +143,23 @@
         <li>Pri páde nesúdiš, podržíš.</li>
       </ul>
     </details>
+    <div class="admin" id="admin" hidden>
+      <div class="h2">Admin</div>
+      <p class="hint">Testovací režim mení len tvoje dáta. Posunom štartu dozadu prejdeš celú výzvu bez čakania.</p>
+      <p class="label" id="aStart"></p>
+      <div class="agrid">
+        <button class="btn ghost" data-shift="-1">Štart −1 deň</button>
+        <button class="btn ghost" data-shift="-7">Štart −7 dní</button>
+        <button class="btn ghost" data-shift="1">Štart +1 deň</button>
+        <button class="btn ghost" data-shift="0">Štart dnes</button>
+      </div>
+      <button class="btn ghost" id="aFill">Odkliknúť všetky dni od štartu po dnešok</button>
+      <button class="btn ghost" id="aHide">Znova skryť odhalené odmeny</button>
+      <button class="btn ghost" id="aClear">Vymazať moje odkliknutia</button>
+      <p class="hint" id="aMsg" aria-live="polite"></p>
+      <div class="h2">Účastníci</div>
+      <div class="card board" id="aUsers"></div>
+    </div>
     <button class="btn ghost" id="logoutBtn">Odhlásiť sa</button>
     <p class="hint" id="acct"></p>
   </section>

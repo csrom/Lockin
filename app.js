@@ -327,7 +327,47 @@
   function renderProfil() {
     $("pNick").value = me.nick; $("pPair").value = me.pair_code || ""; $("pGroup").value = me.group_name || "";
     $("profMsg").textContent = ""; $("acct").textContent = "Prihlásený ako " + (user.email || "");
+    renderAdmin();
   }
+
+  // ─── ADMIN ────────────────────────────────────────────
+  let isAdmin = null;
+  async function renderAdmin() {
+    if (isAdmin === null) { const { data } = await sb.rpc("is_admin"); isAdmin = data === true; }
+    $("admin").hidden = !isAdmin;
+    if (!isAdmin) return;
+    $("aStart").textContent = "Tvoj štart: " + fromIso(me.start_date).toLocaleDateString("sk-SK") + " · deň " + (between(fromIso(me.start_date), today) + 1);
+    const { data, error } = await sb.rpc("admin_overview");
+    $("aUsers").innerHTML = error ? '<div class="row"><span></span><span class="nm"><small>Nepodarilo sa načítať.</small></span><span></span></div>'
+      : (data || []).map((u, i) => `<div class="row"><span class="rk">${i + 1}</span><span class="nm">${esc(u.nick)}<small>${esc(u.email)}${u.pair_code ? " · dvojica " + esc(u.pair_code) : ""}${u.group_name ? " · " + esc(u.group_name) : ""}</small><small>štart ${esc(u.start_date)}${u.last_day ? " · naposledy " + esc(u.last_day) : ""}</small></span><span class="sc">${u.good_days}</span></div>`).join("")
+        || '<div class="row"><span></span><span class="nm"><small>Zatiaľ nikto.</small></span><span></span></div>';
+  }
+  const aMsg = t => { $("aMsg").textContent = t; };
+  document.querySelectorAll("[data-shift]").forEach(b => b.onclick = async () => {
+    const n = +b.dataset.shift;
+    const start = n === 0 ? iso(today) : iso(add(fromIso(me.start_date), n));
+    const { error } = await sb.from("profiles").update({ start_date: start }).eq("id", me.id);
+    if (error) return aMsg("Nepodarilo sa: " + error.message);
+    me.start_date = start; aMsg("Štart posunutý na " + fromIso(start).toLocaleDateString("sk-SK")); renderAdmin();
+  });
+  $("aFill").onclick = async () => {
+    const all = Object.fromEntries(HABITS.map(h => [h.id, true]));
+    const rows = [];
+    for (let d = fromIso(me.start_date); d <= today; d = add(d, 1)) rows.push({ user_id: me.id, day: iso(d), habits: all, updated_at: new Date().toISOString() });
+    const { error } = await sb.from("days").upsert(rows);
+    if (error) return aMsg("Nepodarilo sa: " + error.message);
+    await loadAll(); aMsg("Odkliknutých " + rows.length + " dní. Pozri Výstup."); renderAdmin();
+  };
+  $("aHide").onclick = async () => {
+    const { error } = await sb.from("profiles").update({ seen: {} }).eq("id", me.id);
+    if (error) return aMsg("Nepodarilo sa: " + error.message);
+    me.seen = {}; aMsg("Odmeny sú znova skryté. Odhalia sa pri otvorení Výstupu.");
+  };
+  $("aClear").onclick = async () => {
+    const { error } = await sb.from("days").delete().eq("user_id", me.id);
+    if (error) return aMsg("Nepodarilo sa: " + error.message);
+    await loadAll(); aMsg("Odkliknutia vymazané."); renderAdmin();
+  };
   $("profForm").addEventListener("submit", async e => {
     e.preventDefault();
     const upd = { nick: $("pNick").value.trim() || me.nick, pair_code: $("pPair").value.trim() || null, group_name: $("pGroup").value.trim() || null };
@@ -338,7 +378,7 @@
     if (pairChanged) { await loadAll(); viewing = "me"; }
     $("profMsg").textContent = "Uložené";
   });
-  $("logoutBtn").onclick = async () => { await sb.auth.signOut(); user = me = partner = null; show("intro"); };
+  $("logoutBtn").onclick = async () => { await sb.auth.signOut(); user = me = partner = null; isAdmin = null; show("intro"); };
 
   function render() {
     if (!me) return;

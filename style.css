@@ -157,3 +157,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 
 .loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);color:var(--muted);font-family:var(--mono);letter-spacing:.1em;z-index:50}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.admin{margin:6px 0 24px;padding:16px;border:1px dashed var(--dawn);border-radius:14px;display:flex;flex-direction:column;gap:10px}
+.admin .h2{margin:4px 0 0}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.agrid .btn{padding:12px 8px;font-size:15px}
+.admin #aUsers .row small{display:block}

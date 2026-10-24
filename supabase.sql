@@ -128,3 +128,34 @@ grant execute on function public.leaderboard_pairs()  to authenticated;
 revoke all on function public.my_pair_code() from public, anon;
 revoke all on function public.is_good(jsonb, date) from anon;
 grant execute on function public.my_pair_code()       to authenticated;
+
+-- ─── Admin ───────────────────────────────────────────────
+-- Admini sú určení e-mailom. Tabuľka nie je prístupná z prehliadača.
+create table if not exists public.admins (email text primary key);
+alter table public.admins enable row level security;
+revoke all on public.admins from anon, authenticated;
+insert into public.admins (email) values ('roman.stanco19@gmail.com') on conflict do nothing;
+
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admins where lower(email) = lower(auth.jwt() ->> 'email'))
+$$;
+
+-- Prehľad všetkých účastníkov, len pre adminov.
+create or replace function public.admin_overview()
+returns table (nick text, email text, pair_code text, group_name text, start_date date,
+               good_days int, last_day date, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select p.nick, u.email::text, p.pair_code, p.group_name, p.start_date,
+         (select count(*) from public.days d where d.user_id = p.id and d.day >= p.start_date and public.is_good(d.habits, d.day))::int,
+         (select max(d.day) from public.days d where d.user_id = p.id),
+         p.created_at
+  from public.profiles p join auth.users u on u.id = p.id
+  where public.is_admin()
+  order by p.created_at
+$$;
+
+revoke all on function public.is_admin()       from public, anon;
+revoke all on function public.admin_overview() from public, anon;
+grant execute on function public.is_admin()       to authenticated;
+grant execute on function public.admin_overview() to authenticated;
