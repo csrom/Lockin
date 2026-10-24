@@ -302,9 +302,6 @@
       $("savedMsg").textContent = error ? "Neuložilo sa, skús to znova." : "Uložené";
     }, 450);
   });
-  // Pravidlá hore na Dnes: otvorené, kým ich človek nezavrie
-  try { $("dayRules").open = localStorage.getItem("lockinRules") !== "closed"; } catch (e) { $("dayRules").open = true; }
-  $("dayRules").addEventListener("toggle", () => { try { localStorage.setItem("lockinRules", $("dayRules").open ? "open" : "closed"); } catch (e) {} });
 
   // ─── Úspešný deň: zbalenie a oslava ───
   const expanded = {};

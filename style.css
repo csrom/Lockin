@@ -291,3 +291,5 @@ html{scroll-behavior:smooth}
 .top-rules .rules{max-height:32vh;overflow-y:auto;margin:0 0 12px;padding-right:4px}
 .item.locked{cursor:default}
 .item .lk{font-size:12px;margin-left:6px;opacity:.75}
+.top-rules .more-info{font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
+.top-rules[open] .more-info{display:none}
