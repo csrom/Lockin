@@ -177,3 +177,12 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.leaderboard_players() from public, anon;
 grant execute on function public.leaderboard_players() to authenticated;
+
+-- ─── Admin je v rebríčkoch neviditeľný ───────────────────
+create or replace function public.is_hidden(uid uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from auth.users u join public.admins a on lower(a.email) = lower(u.email) where u.id = uid)
+$$;
+revoke all on function public.is_hidden(uuid) from public, anon, authenticated;
+-- Rebríčky vyššie (leaderboard_groups, leaderboard_pairs, leaderboard_players) sú v databáze
+-- nasadené s podmienkou "not public.is_hidden(p.id)"; pri novej inštalácii ju doplň do ich WHERE.
