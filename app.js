@@ -145,7 +145,12 @@
       $("loginMsg").textContent = "Nepodarilo sa načítať dáta. Skontroluj pripojenie a skús to znova.";
     } finally { $("loading").hidden = true; }
   }
-  sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_IN" || ev === "SIGNED_OUT") boot(); });
+  // Volania Supabase priamo v tomto callbacku by sa zasekli (zámok knižnice), preto setTimeout.
+  // SIGNED_IN prichádza aj pri návrate do záložky; znova načítavame len pri zmene používateľa.
+  sb.auth.onAuthStateChange((ev, session) => {
+    const uid = session && session.user ? session.user.id : null;
+    if (ev === "SIGNED_OUT" || (ev === "SIGNED_IN" && uid !== (user && user.id))) setTimeout(boot, 0);
+  });
 
   // ─── Úvod a prihlásenie ───────────────────────────────
   $("goLogin").onclick = $("goLogin2").onclick = () => { show("login"); $("lEmail").focus(); };
@@ -184,7 +189,7 @@
   sb.auth.onAuthStateChange(ev => {
     if (ev !== "PASSWORD_RECOVERY") return;
     recovering = true;
-    show("login"); $("loginForm").hidden = true; $("newPassForm").hidden = false; $("lNewPass").focus();
+    setTimeout(() => show("login"), 0); $("loginForm").hidden = true; $("newPassForm").hidden = false; $("lNewPass").focus();
   });
   $("newPassForm").addEventListener("submit", async e => {
     e.preventDefault();
