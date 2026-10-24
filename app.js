@@ -91,6 +91,7 @@
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
     if (view !== "vystup") $("stageVid").pause();
     if (view !== "intro") $("tapGate").hidden = true;
+    setTimeout(moreUi, 0);
     const vid = $("heroVideo"); if (vid) { if (view === "intro") heroPlay(); else vid.pause(); }
     window.scrollTo(0, 0);
   }
@@ -381,6 +382,10 @@
     v.muted = !heroWantSound; if (heroWantSound) v.play().catch(() => {});
     $("tapGate").hidden = true; heroUi();
   };
+
+  // „Pravidlá nižšie“ zmizne, keď sa začne posúvať
+  const moreUi = () => { const m = document.querySelector(".more"); if (m) m.classList.toggle("gone", window.scrollY > 60 || $("v-intro").hidden); };
+  window.addEventListener("scroll", moreUi, { passive: true });
 
   // ─── SKUPINA ──────────────────────────────────────────
   async function renderSkupina() {
