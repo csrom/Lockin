@@ -48,7 +48,21 @@
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const norm = s => String(s || "").trim().toLowerCase();
   const DAY = 864e5;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let today = new Date(); today.setHours(0, 0, 0, 0);
+  // Po polnoci sa deň uzavrie: prepočítame „dnes“ a prekreslíme.
+  function tick() {
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    if (+t !== +today) { today = t; sel = null; if (me) render(); }
+    else if (me && tab === "dnes") deadlineUi();
+  }
+  setInterval(tick, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  function deadlineUi() {
+    const el = $("deadline"); if (!el) return;
+    if (!sel || +sel !== +today || viewing === "partner") { el.innerHTML = sel && sel < today && viewing !== "partner" ? "Tento deň je uzavretý." : ""; return; }
+    const left = Math.max(0, Math.floor((add(today, 1) - new Date()) / 60000));
+    el.innerHTML = `Odklikni do <b>23:59</b> · zostáva ${Math.floor(left / 60)} h ${left % 60} min`;
+  }
   const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const fromIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   const add = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -62,7 +76,7 @@
   });
 
   // ─── Stav ─────────────────────────────────────────────
-  let user = null, me = null, partner = null;
+  let user = null, me = null, partner = null, isAdmin = null;
   const days = {};          // user_id -> { iso: habits }
   let tab = "dnes", sel = null, viewing = "me";
 
@@ -143,7 +157,8 @@
         return;
       }
       if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
-      const ok = await loadAll();
+      if (isAdmin === null) { const { data } = await sb.rpc("is_admin"); isAdmin = data === true; }
+    const ok = await loadAll();
       if (!ok) { show("join"); return; }
       sel = null; render(); show(tab);
     } catch (e) {
@@ -234,7 +249,7 @@
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
     $("scoreN").textContent = c + "/6";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
-    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
+    cap.textContent = future ? "tento deň ešte nezačal" : (d < today && !g) ? "deň je uzavretý" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
     let wk = "";
     for (let i = 0; i < L; i++) {
       const x = add(b, i), fut = x > today, cl = good(doc, x) ? "good" : cnt(doc, x) > 0 ? "part" : "";
@@ -242,11 +257,13 @@
     }
     $("week").innerHTML = wk;
     $("week").style.gridTemplateColumns = `repeat(${Math.max(L, 5)},minmax(0,1fr))`;
-    const dis = future || ro;
+    const closed = d < today && !isAdmin;
+    const dis = future || ro || closed;
     $("list").innerHTML = HABITS.map(h => `<label class="item"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
+    deadlineUi();
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
     $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
       (partner ? "Napíš parťákovi a zajtra ideš ďalej." : "Zajtra ideš ďalej. Každý ďalší úspešný deň ťa ťahá dopredu.");
@@ -422,7 +439,6 @@
   }
 
   // ─── ADMIN ────────────────────────────────────────────
-  let isAdmin = null;
   async function renderAdmin() {
     if (isAdmin === null) { const { data } = await sb.rpc("is_admin"); isAdmin = data === true; }
     $("admin").hidden = !isAdmin;

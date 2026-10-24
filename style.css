@@ -188,3 +188,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 #pravidla{scroll-margin-top:16px;margin-top:22px}
 html{scroll-behavior:smooth}
 .more.gone{}
+.deadline{margin:14px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.deadline b{color:var(--dawn);font-weight:600}
