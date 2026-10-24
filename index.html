@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lock In · 30 dní disciplíny</title>
+<meta name="description" content="30-dňová výzva disciplíny pre chlapov. Sám, vo dvojici alebo v skupine.">
+<meta name="theme-color" content="#0a0d12">
+<meta property="og:title" content="Lock In · 30 dní disciplíny">
+<meta property="og:description" content="Bdejte, stojte pevne vo viere, buďte mužní, buďte silní.">
+<meta property="og:image" content="/media/stage1.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ÚVOD -->
+  <section id="v-intro" hidden>
+    <div class="hero">
+      <video class="hero-video" id="heroVideo" src="/media/vystup.mp4" poster="/media/vystup-poster.webp" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+      <div class="fade"></div>
+      <div class="copy pad">
+        <h1 class="disp">Lock In</h1>
+        <div class="label sub">30 dní disciplíny</div>
+      </div>
+    </div>
+    <div class="intro-body pad">
+      <p class="verse">„Bdejte, stojte pevne vo viere, buďte mužní, buďte silní.“<cite>1 Kor 16,13</cite></p>
+      <button class="btn" id="goLogin">Začať výzvu</button>
+      <button class="link" id="goLogin2">Už mám účet</button>
+      <ol class="steps">
+        <li><div><b>Každý deň 6 bodov</b><span>Čistý deň, cvičenie, modlitba alebo Písmo, deep work, studená sprcha a scrollovanie najviac 30 minút.</span></div></li>
+        <li><div><b>Jeden bod môžeš vynechať</b><span>Dobrý deň je 5 zo 6. Nedeľa je voľná, stačí 1 bod.</span></div></li>
+        <li><div><b>30 dní, začni kedykoľvek</b><span>Týždeň sa ráta 7 dní od tvojho štartu. Za každý zamknutý týždeň je tajná odmena.</span></div></li>
+        <li><div><b>Sám, vo dvojici alebo v skupine</b><span>S parťákom zadáte rovnaký kód. Skupiny medzi sebou súperia.</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- PRIHLÁSENIE -->
+  <section id="v-login" hidden>
+    <div class="top pad">
+      <button class="link back" id="loginBack">← Späť</button>
+      <div class="disp big">Prihlásenie</div>
+    </div>
+    <form class="form pad" id="loginForm">
+      <div class="field"><label class="label" for="lEmail">E-mail</label><input id="lEmail" type="email" required autocomplete="email" inputmode="email" placeholder="tvoj@email.sk"></div>
+      <button class="btn" type="submit" id="loginBtn">Poslať prihlasovací odkaz</button>
+      <p class="hint" id="loginMsg">Pošleme ti e-mail s odkazom. Klikneš naň a si dnu, bez hesla.</p>
+    </form>
+  </section>
+
+  <!-- VSTUP DO VÝZVY -->
+  <section id="v-join" hidden>
+    <div class="top pad"><div class="disp big">Vstúp<br>do výzvy</div></div>
+    <form class="form pad" id="joinForm">
+      <div class="field"><label class="label" for="fNick">Prezývka</label><input id="fNick" maxlength="20" required placeholder="napr. Roman" autocomplete="nickname"></div>
+      <div class="field"><label class="label" for="fPair">Kód dvojice · nepovinné</label><input id="fPair" maxlength="24" placeholder="nechaj prázdne, ak ideš sám" autocomplete="off"></div>
+      <div class="field"><label class="label" for="fGroup">Skupina · nepovinné</label><input id="fGroup" maxlength="24" placeholder="napr. Ľubochňa" autocomplete="off"></div>
+      <p class="hint">Kód dvojice si vymyslite s parťákom a nikomu inému ho nedávajte. Kto ho pozná, vidí vaše odkliknutia.</p>
+      <button class="btn" type="submit">Lock in</button>
+      <p class="err" id="joinErr" hidden></p>
+    </form>
+  </section>
+
+  <!-- DNES -->
+  <section id="v-dnes" hidden>
+    <div class="top storm pad">
+      <div class="who" id="who" hidden>
+        <button id="whoMe" aria-pressed="true">Ja</button>
+        <button id="whoPartner" aria-pressed="false">Parťák</button>
+      </div>
+      <div class="row"><span class="daytag label" id="dayTag"></span>
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#b9c6d4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Štít"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div class="score"><div class="disp n" id="scoreN">0/6</div><div class="cap" id="scoreCap"></div></div>
+      <div class="week" id="week"></div>
+    </div>
+    <div class="pad">
+      <div class="list" id="list"></div>
+      <p class="hint saved" id="savedMsg" aria-live="polite"></p>
+      <button class="btn ghost fall" id="fallBtn">Spadol som. Čo teraz?</button>
+      <div class="note" id="fallNote" hidden>
+        <p class="verse">„Spravodlivý padne sedem ráz a zas vstane.“<cite>Prís 24,16</cite></p>
+        <span id="fallText"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VÝSTUP -->
+  <section id="v-vystup" hidden class="pad">
+    <div class="stage">
+      <div class="stage-img" id="stageImg">
+        <div class="ov"><h2 class="disp" id="stageTitle"></h2><div class="v" id="stageVerse"></div></div>
+      </div>
+      <div class="txt" id="stageText"></div>
+    </div>
+    <div class="path" id="path"></div>
+    <div class="prog"><div class="bar"><i id="progBar"></i></div><b id="progTxt"></b><span class="label">dní</span></div>
+    <div class="card secret" id="secret"></div>
+  </section>
+
+  <!-- SKUPINA -->
+  <section id="v-skupina" hidden class="pad">
+    <div class="h2">Súboj skupín</div>
+    <div class="label">Percento dobrých dní za posledných 7 dní</div>
+    <div class="card board" id="groups"><div class="row"><span></span><span class="nm"><small>Načítavam…</small></span><span></span></div></div>
+    <div class="h2 small">Dvojice</div>
+    <div class="label">Dni, keď boli dobrí obaja, za posledných 30 dní</div>
+    <div class="card board" id="pairs"></div>
+  </section>
+
+  <!-- PROFIL -->
+  <section id="v-profil" hidden class="pad">
+    <div class="h2">Profil</div>
+    <form class="form" id="profForm">
+      <div class="field"><label class="label" for="pNick">Prezývka</label><input id="pNick" maxlength="20" required></div>
+      <div class="field"><label class="label" for="pPair">Kód dvojice</label><input id="pPair" maxlength="24" autocomplete="off"></div>
+      <div class="field"><label class="label" for="pGroup">Skupina</label><input id="pGroup" maxlength="24" autocomplete="off"></div>
+      <button class="btn" type="submit">Uložiť</button>
+      <p class="hint" id="profMsg" aria-live="polite"></p>
+    </form>
+    <details class="rulebox">
+      <summary>Prečítaj si pravidlá</summary>
+      <ul class="rules">
+        <li>Dobrý deň je aspoň 5 zo 6 bodov. V nedeľu stačí 1 bod.</li>
+        <li>Výzva trvá 30 dní od tvojho štartu: štyri týždne a dvojdňové finále.</li>
+        <li>Týždeň zamkneš, keď máš všetky dni dobré. Odmena sa odhalí až po jeho skončení.</li>
+        <li>Vo dvojici padne odmena, len keď týždeň zamknete obaja. Dvojica začína dňom, keď sa pripojí druhý.</li>
+        <li>Odmeny: 1. týždeň večer pri hre, 2. otužovanie alebo sauna, 3. list sebe o rok, 4. svitanie. Finále: výbeh na vrchol alebo túra.</li>
+        <li>Nedeľa večer: krátky hovor s parťákom, čo bolo najťažšie a čo ďalej.</li>
+        <li>Pri páde nesúdiš, podržíš.</li>
+      </ul>
+    </details>
+    <button class="btn ghost" id="logoutBtn">Odhlásiť sa</button>
+    <p class="hint" id="acct"></p>
+  </section>
+</div>
+
+<nav class="tabs" id="tabs" hidden aria-label="Hlavné menu"><div class="in">
+  <button data-tab="dnes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17M9 15l2 2 4-4"/></svg>Dnes</button>
+  <button data-tab="vystup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20l7-12 4 6 3-4 6 10z"/><path d="M9 8l1.5 2.5"/></svg>Výstup</button>
+  <button data-tab="skupina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c.5-3.5 3-5 6-5s5.5 1.5 6 5M15 14.5c2.6 0 4.6 1.3 5 4"/></svg>Skupina</button>
+  <button data-tab="profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/></svg>Profil</button>
+</div></nav>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card sheet reveal">
+    <div class="sheet-img" id="mImg"></div>
+    <div class="in">
+      <span class="label" id="mLabel"></span>
+      <h3 id="mTitle"></h3>
+      <p id="mText" class="muted"></p>
+      <div class="games" id="mGames" hidden></div>
+      <p class="verse" id="mVerse"></p>
+      <button class="btn" id="mClose">Ideme ďalej</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loading">Načítavam…</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
