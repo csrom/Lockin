@@ -258,10 +258,12 @@
     $("week").style.gridTemplateColumns = `repeat(${Math.max(L, 5)},minmax(0,1fr))`;
     const closed = d < today && !isAdmin;
     const dis = future || ro || closed;
-    $("list").innerHTML = HABITS.map(h => `<label class="item"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
+    // Body, ktoré splnili úspešný deň, sú zamknuté (admin môže meniť)
+    const locked = isAdmin ? [] : (Array.isArray(r.lock) ? r.lock : g ? HABITS.filter(h => r[h.id] === true).map(h => h.id) : []);
+    $("list").innerHTML = HABITS.map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
-      <span class="t">${h.t}<small>${h.d}</small></span>
-      ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`).join("");
+      <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
+      ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
@@ -289,6 +291,8 @@
     if (e.target.dataset.h) mine[k][e.target.dataset.h] = e.target.checked;
     if (e.target.hasAttribute("data-dur")) mine[k].dur = e.target.value;
     const now = good(docOf(me), sel);
+    if (!was && now) mine[k].lock = HABITS.filter(h => mine[k][h.id] === true).map(h => h.id);
+    if (was && !now && isAdmin) delete mine[k].lock;
     renderDnes();
     if (!was && now) setTimeout(() => celebrate(sel), 250);
     $("savedMsg").textContent = "Ukladám…";
@@ -298,6 +302,10 @@
       $("savedMsg").textContent = error ? "Neuložilo sa, skús to znova." : "Uložené";
     }, 450);
   });
+  // Pravidlá hore na Dnes: otvorené, kým ich človek nezavrie
+  try { $("dayRules").open = localStorage.getItem("lockinRules") !== "closed"; } catch (e) { $("dayRules").open = true; }
+  $("dayRules").addEventListener("toggle", () => { try { localStorage.setItem("lockinRules", $("dayRules").open ? "open" : "closed"); } catch (e) {} });
+
   // ─── Úspešný deň: zbalenie a oslava ───
   const expanded = {};
   const dniWord = n => n === 1 ? "deň" : n >= 2 && n <= 4 ? "dni" : "dní";

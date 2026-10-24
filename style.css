@@ -283,3 +283,11 @@ html{scroll-behavior:smooth}
 .wingo{margin:6px 0 0;color:#c9d4e0;font-size:15px;line-height:1.45;max-width:300px;animation:rise .6s .5s both}
 .locknote{margin:10px 0 0;font-size:13px}
 .done{margin:10px 0 0}
+.daysrules{padding-top:10px;padding-bottom:0}
+.top-rules{margin:0;border:1px solid var(--line);border-radius:12px;background:#121821;padding:2px 14px}
+.top-rules summary{color:var(--fg);text-decoration:none;font-weight:600;padding:12px 0;width:100%}
+.top-rules summary::after{content:"▾";float:right;color:var(--muted)}
+.top-rules[open] summary::after{content:"▴"}
+.top-rules .rules{max-height:32vh;overflow-y:auto;margin:0 0 12px;padding-right:4px}
+.item.locked{cursor:default}
+.item .lk{font-size:12px;margin-left:6px;opacity:.75}
