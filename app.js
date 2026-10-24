@@ -517,7 +517,7 @@
     const safari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua) && !inApp;
     const txt = inApp
       ? "Otvor túto stránku v Safari (iPhone) alebo Chrome (Android) a pridaj si ju na plochu. Z Messengera sa to nedá."
-      : ios ? (safari ? "V Safari ťukni na Zdieľať (štvorček so šípkou) a vyber Pridať na plochu." : "Na iPhone otvor stránku v Safari, ťukni na Zdieľať a vyber Pridať na plochu.")
+      : ios ? (safari ? "V Safari ťukni na ⋯ dole, potom Zdieľať, Zobraziť viac a Pridať na plochu." : "Otvor stránku v Safari, ťukni na ⋯ dole, potom Zdieľať, Zobraziť viac a Pridať na plochu.")
       : installEvt ? "Jedno ťuknutie a máš Lock In na ploche ako appku."
       : "V prehliadači otvor menu (⋮) a vyber Inštalovať aplikáciu alebo Pridať na plochu.";
     $("install").hidden = standalone; $("installIntro").hidden = standalone;
@@ -528,10 +528,16 @@
     // iPhone v Safari: bublina so šípkou na Zdieľať, kým ju nezavrie
     let dismissed = false; try { dismissed = localStorage.getItem("lockinIosTip") === "x"; } catch (e) {}
     $("iosTip").hidden = !(safari && !standalone && !dismissed && !$("v-intro").hidden);
+    // Na Dnes: karta s inštaláciou pre prihlásených, kým ju nezavrie
+    let dayX = false; try { dayX = localStorage.getItem("lockinInstallX") === "x"; } catch (e) {}
+    $("installDay").hidden = standalone || dayX;
+    $("installTxt3").textContent = installEvt ? "Jedno ťuknutie a máš ju na ploche s vlastnou ikonou." : txt;
+    $("installBtn3").hidden = !installEvt;
     if (!$("iosTip").hidden) $("installTxt2").textContent = "";
   }
   $("iosTipX").onclick = () => { $("iosTip").hidden = true; try { localStorage.setItem("lockinIosTip", "x"); } catch (e) {} };
-  $("installBtn2").onclick = () => $("installBtn").onclick();
+  $("installBtn2").onclick = $("installBtn3").onclick = () => $("installBtn").onclick();
+  $("installDayX").onclick = () => { $("installDay").hidden = true; try { localStorage.setItem("lockinInstallX", "x"); } catch (e) {} };
   installUi();
 
   boot();

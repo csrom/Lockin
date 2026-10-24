@@ -196,5 +196,8 @@ html{scroll-behavior:smooth}
 .iosTip{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;background:#121821;border:1px solid var(--dawn);border-radius:14px;padding:14px 40px 14px 16px;color:var(--fg);font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .iosTip[hidden]{display:none}
 .iosTip svg{width:18px;height:18px;vertical-align:-3px;color:var(--steel)}
-.iosTip::after{content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;background:#121821;border-right:1px solid var(--dawn);border-bottom:1px solid var(--dawn);transform:translateX(-50%) rotate(45deg)}
+.iosTip::after{content:"";position:absolute;right:26px;bottom:-8px;width:14px;height:14px;background:#121821;border-right:1px solid var(--dawn);border-bottom:1px solid var(--dawn);transform:rotate(45deg)}
 .iosTip .x{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:6px}
+.install{position:relative}
+.install .x{position:absolute;top:8px;right:8px;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:6px}
+#installDay{margin:18px 0 0;padding-right:40px}

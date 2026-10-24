@@ -105,6 +105,12 @@
     <div class="pad">
       <div class="list" id="list"></div>
       <p class="hint saved" id="savedMsg" aria-live="polite"></p>
+      <div class="card install" id="installDay" hidden>
+        <button class="x" id="installDayX" type="button" aria-label="Zavrieť">✕</button>
+        <b>📲 Lock In ako appka na plochu</b>
+        <p class="hint" id="installTxt3"></p>
+        <button class="btn" id="installBtn3" hidden>Nainštalovať appku</button>
+      </div>
       <button class="btn ghost fall" id="fallBtn">Spadol som. Čo teraz?</button>
       <div class="note" id="fallNote" hidden>
         <p class="verse">„Spravodlivý padne sedem ráz a zas vstane.“<cite>Prís 24,16</cite></p>
@@ -215,7 +221,7 @@
 <div class="iosTip" id="iosTip" hidden role="dialog" aria-label="Pridať na plochu">
   <button class="x" id="iosTipX" type="button" aria-label="Zavrieť">✕</button>
   <b>Pridaj si Lock In na plochu</b>
-  <span>Ťukni na <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> Zdieľať dole a vyber <b>Pridať na plochu</b>.</span>
+  <span>V Safari ťukni na <b>⋯</b> dole, potom <b>Zdieľať</b>, <b>Zobraziť viac</b> a <b>Pridať na plochu</b>.</span>
 </div>
 <div class="loading" id="loading">Načítavam…</div>
 
