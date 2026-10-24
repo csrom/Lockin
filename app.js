@@ -54,7 +54,7 @@
   // ─── Supabase ─────────────────────────────────────────
   const cfg = window.LOCKIN_CONFIG || {};
   const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" }
   });
 
   // ─── Stav ─────────────────────────────────────────────
@@ -118,7 +118,18 @@
     try {
       const { data } = await sb.auth.getSession();
       user = data.session ? data.session.user : null;
-      if (!user) { show("intro"); return; }
+      if (!user) {
+        show("intro");
+        // chyba z prihlasovacieho odkazu (napr. vypršaný) príde v adrese
+        const h = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+        if (h.get("error_description")) {
+          show("login");
+          $("loginMsg").textContent = "Odkaz nefungoval (" + h.get("error_description").replace(/\+/g, " ") + "). Pošli si nový.";
+          history.replaceState(null, "", location.pathname);
+        }
+        return;
+      }
+      if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
       const ok = await loadAll();
       if (!ok) { show("join"); return; }
       sel = null; render(); show(tab);
@@ -137,7 +148,7 @@
     e.preventDefault();
     const email = $("lEmail").value.trim();
     $("loginBtn").disabled = true;
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin } });
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: cfg.siteUrl || location.origin } });
     $("loginBtn").disabled = false;
     $("loginMsg").textContent = error
       ? "Odkaz sa nepodarilo poslať: " + error.message

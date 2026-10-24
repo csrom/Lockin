@@ -3,5 +3,6 @@
 // Tajný service_role kľúč sem NIKDY nedávaj.
 window.LOCKIN_CONFIG = {
   supabaseUrl: "https://dzhmlltqhzwspyhmgcks.supabase.co",
+  siteUrl: "https://lockin-roman-fa5e.vercel.app",
   supabaseKey: "sb_publishable_M0O4SgptdvA9xmGk9k28Sg_82H9WlXO"
 };
