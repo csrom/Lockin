@@ -19,6 +19,12 @@
     { id: "cold", t: "Studená sprcha alebo ponor", d: "Aspoň 1 minúta studenej vody" },
     { id: "scroll", t: "Obmedzenie scrollovania", d: "Sociálne siete a videá max 30 min za deň" }
   ];
+  // Nedeľné bonusy (rátajú sa do bodov v rebríčku, nie do úspešného dňa)
+  const BONUS = [
+    { id: "b_deed", t: "Dobrý skutok", d: "Pomôž niekomu, ideálne bez toho, aby to vedel: zavolaj starkej, pomôž susedovi, zaplať niekomu kávu, napíš kamošovi povzbudenie, daruj niečo, čo už nepotrebuješ." },
+    { id: "b_self", t: "Niečo pekné pre seba", d: "Sprav niečo, čo ťa robí šťastným. Nie preto, že je to praktické, ale preto, že ťa to teší. Aj to je láska k sebe." }
+  ];
+  const bonusFor = d => d.getDay() === 0 ? BONUS : [];
   const NEED = 5, CH = 30;
   const STAGES = [
     { at: 0, n: "Úpätie", theme: "Rozhodnutie", img: "/media/stage1.webp", v: "„Buď silný a odvážny! Neboj sa a nestrachuj.“ Joz 1,9", t: "Kríž si zdvihol. Hora je vysoká a ty ideš aj tak." },
@@ -247,7 +253,9 @@
     if (!sel || sel < b || sel >= add(b, L)) sel = ref;
     const d = sel, future = d > today, r = doc.days[iso(d)] || {}, c = cnt(doc, d), g = good(doc, d);
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
+    const bon = bonusFor(d), bc = bon.filter(h => r[h.id] === true).length;
     $("scoreN").textContent = c + "/6";
+    $("scoreN").dataset.bonus = bc ? "+" + bc + " bonus" : "";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
     cap.textContent = future ? "tento deň ešte nezačal" : (d < today && !g && !isAdmin) ? "deň je uzamknutý" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
     let wk = "";
@@ -265,6 +273,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
+    if (bon.length) $("list").innerHTML += `<div class="bonus-h">⭐ Nedeľný bonus</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
+      <span class="star" aria-hidden="true">⭐</span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";

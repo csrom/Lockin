@@ -293,3 +293,7 @@ html{scroll-behavior:smooth}
 .item .lk{font-size:12px;margin-left:6px;opacity:.75}
 .top-rules .more-info{font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
 .top-rules[open] .more-info{display:none}
+.bonus-h{margin:18px 0 2px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dawn)}
+.item.bonus .star{width:24px;text-align:center;font-size:18px;flex:none}
+.item.bonus input:checked{background:var(--dawn);border-color:var(--dawn)}
+.score .n[data-bonus]:not([data-bonus=""])::after{content:attr(data-bonus);display:block;font-family:var(--mono);font-size:13px;letter-spacing:.08em;color:var(--dawn);text-transform:uppercase;margin-top:4px}
