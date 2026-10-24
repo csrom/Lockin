@@ -86,7 +86,7 @@
     $("tabs").hidden = !inApp;
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
     if (view !== "vystup") $("stageVid").pause();
-    const vid = $("heroVideo"); if (vid) { if (view === "intro") vid.play().catch(() => {}); else vid.pause(); }
+    const vid = $("heroVideo"); if (vid) { if (view === "intro") heroPlay(); else vid.pause(); }
     window.scrollTo(0, 0);
   }
   function go(t) { tab = t; render(); show(t); }
@@ -278,7 +278,8 @@
     const sv = $("stageVid"); sv.pause(); sv.hidden = true;
     $("stagePlay").hidden = si < 1;
     $("stagePlay").onclick = () => {
-      sv.src = "/media/odmena" + si + ".mp4"; sv.poster = "/media/odmena" + si + ".webp";
+      sv.src = si === 4 ? "/media/vystup.mp4" : "/media/odmena" + si + ".mp4";
+      sv.poster = si === 4 ? "/media/vystup-poster.webp" : "/media/odmena" + si + ".webp";
       sv.hidden = false; sv.muted = false; $("stagePlay").hidden = true;
       sv.play().catch(() => { sv.muted = true; sv.play(); });
     };
@@ -318,7 +319,9 @@
   function openReveal(bb, docs) {
     const slot = Math.min(4, Math.floor(dayIdx(bb, docs) / 7));
     $("mImg").style.backgroundImage = `url("${STAGES[Math.min(4, slot + 1)].img}")`;
-    const mv = $("mVid"); mv.src = "/media/odmena" + (slot + 1) + ".mp4"; mv.poster = "/media/odmena" + (slot + 1) + ".webp";
+    const mv = $("mVid");
+    mv.src = slot === 4 ? "/media/vystup.mp4" : "/media/odmena" + (slot + 1) + ".mp4";
+    mv.poster = slot === 4 ? "/media/vystup-poster.webp" : "/media/odmena" + (slot + 1) + ".webp";
     mv.muted = false; $("mReplay").hidden = true;
     mv.play().catch(() => { mv.muted = true; mv.play().catch(() => {}); });
     $("mLabel").textContent = slot === 4 ? "Finále" : "Odmena · týždeň " + (slot + 1);
@@ -334,12 +337,33 @@
   $("mVid").onended = () => { $("mReplay").hidden = false; };
   $("mReplay").onclick = () => { const v = $("mVid"); v.currentTime = 0; v.muted = false; v.play(); $("mReplay").hidden = true; };
 
-  // Úvodné video: zvuk po kliknutí (prehliadače bez kliknutia zvuk nepustia)
-  $("heroSound").onclick = () => {
-    const v = $("heroVideo"), on = v.muted;
-    v.muted = !on; if (on) { v.currentTime = 0; v.play(); }
+  // Úvodné video: zvuk je predvolene zapnutý. Ak prehliadač nedovolí zvuk bez interakcie,
+  // video ide potichu a zvuk sa zapne pri prvom dotyku/kliknutí kdekoľvek na stránke.
+  let heroWantSound = true;
+  try { heroWantSound = localStorage.getItem("lockinSound") !== "off"; } catch (e) {}
+  const heroUi = () => {
+    const on = !$("heroVideo").muted;
     $("heroSound").classList.toggle("on", on);
-    $("heroSound").setAttribute("aria-label", on ? "Stlmiť zvuk" : "Pustiť video so zvukom");
+    $("heroSound").setAttribute("aria-label", on ? "Stlmiť zvuk" : "Zapnúť zvuk");
+  };
+  function heroPlay() {
+    const v = $("heroVideo");
+    v.muted = !heroWantSound;
+    v.play().then(heroUi).catch(() => { v.muted = true; heroUi(); v.play().catch(() => {}); });
+  }
+  const unlock = e => {
+    if (e && e.target && e.target.closest && e.target.closest("#heroSound")) return;
+    const v = $("heroVideo");
+    if (heroWantSound && v.muted && !$("v-intro").hidden) { v.muted = false; v.play().catch(() => {}); heroUi(); }
+    ["pointerdown", "keydown", "touchstart"].forEach(t => document.removeEventListener(t, unlock, true));
+  };
+  ["pointerdown", "keydown", "touchstart"].forEach(t => document.addEventListener(t, unlock, true));
+  $("heroSound").onclick = () => {
+    const v = $("heroVideo");
+    heroWantSound = v.muted;
+    try { localStorage.setItem("lockinSound", heroWantSound ? "on" : "off"); } catch (e) {}
+    v.muted = !heroWantSound; if (heroWantSound) v.play().catch(() => {});
+    heroUi();
   };
 
   // ─── SKUPINA ──────────────────────────────────────────
