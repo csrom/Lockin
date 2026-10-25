@@ -684,16 +684,19 @@
     const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
     const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua), inApp = /FBAN|FBAV|Instagram|Messenger|Line\//.test(ua);
     const safari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua) && !inApp;
+    const android = /Android/.test(ua), samsung = /SamsungBrowser/.test(ua);
     const txt = inApp
       ? "Otvor túto stránku v Safari (iPhone) alebo Chrome (Android) a pridaj si ju na plochu. Z Messengera sa to nedá."
       : ios ? (safari ? "V Safari ťukni na ⋯ dole, potom Zdieľať, Zobraziť viac a Pridať na plochu." : "Otvor stránku v Safari, ťukni na ⋯ dole, potom Zdieľať, Zobraziť viac a Pridať na plochu.")
       : installEvt ? "Jedno ťuknutie a máš Lock In na ploche ako appku."
+      : samsung ? "V Samsung prehliadači ťukni na ≡ dole, potom Pridať stránku do a Domovská obrazovka. Alebo otvor stránku v Chrome."
+      : android ? "V Chrome ťukni na ⋮ vpravo hore, potom Pridať na plochu a Inštalovať."
       : "V prehliadači otvor menu (⋮) a vyber Inštalovať aplikáciu alebo Pridať na plochu.";
     $("install").hidden = standalone; $("installIntro").hidden = standalone;
     $("installBtn").hidden = $("installBtn2").hidden = standalone || !installEvt;
     $("installTxt").textContent = txt;
     // Na úvode: na Androide stačí tlačidlo, text len keď tlačidlo nie je k dispozícii
-    $("installTxt2").textContent = installEvt ? "" : (inApp || ios ? txt : "");
+    $("installTxt2").textContent = installEvt ? "" : (inApp || ios || android ? txt : "");
     // iPhone v Safari: bublina so šípkou na Zdieľať, kým ju nezavrie
     let dismissed = false; try { dismissed = localStorage.getItem("lockinIosTip") === "x"; } catch (e) {}
     $("iosTip").hidden = !(safari && !standalone && !dismissed && !$("v-intro").hidden);

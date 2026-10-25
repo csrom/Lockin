@@ -3,6 +3,7 @@
   "short_name": "Lock In",
   "description": "30-dňová výzva disciplíny veriaceho muža. Sám, vo dvojici alebo v skupine.",
   "lang": "sk",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

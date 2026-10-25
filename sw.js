@@ -1,11 +1,12 @@
 // Lock In service worker
 // Stránka a skripty: vždy najprv zo siete (aktualizácie sa prejavia hneď), offline z cache.
 // Obrázky a videá: z cache, lebo sa nemenia (nové verzie majú nové meno súboru).
-const CACHE = "lockin-v1";
-const SHELL = ["/", "/index.html", "/style.css", "/app.js", "/config.js", "/manifest.webmanifest", "/media/icon-192.png"];
+const CACHE = "lockin-v2";
+const SHELL = ["/", "/style.css", "/app.js", "/config.js", "/manifest.webmanifest", "/media/icon-192.png"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // každý súbor zvlášť: keby jeden zlyhal, service worker sa aj tak nainštaluje
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
