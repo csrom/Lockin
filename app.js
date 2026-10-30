@@ -56,7 +56,7 @@
   const norm = s => String(s || "").trim().toLowerCase();
   const DAY = 864e5;
   let today = new Date(); today.setHours(0, 0, 0, 0);
-  // Po polnoci sa deň uzavrie: prepočítame „dnes“ a prekreslíme.
+  // Po polnoci prepočítame „dnes“ a prekreslíme.
   function tick() {
     const t = new Date(); t.setHours(0, 0, 0, 0);
     if (+t !== +today) { today = t; sel = null; if (me) render(); }
@@ -257,7 +257,7 @@
     $("scoreN").textContent = c + "/6";
     $("scoreN").dataset.bonus = bc ? "+" + bc + " bonus" : "";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
-    cap.textContent = future ? "tento deň ešte nezačal" : (d < today && !g && !isAdmin) ? "deň je uzamknutý" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
+    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
     let wk = "";
     for (let i = 0; i < L; i++) {
       const x = add(b, i), fut = x > today, cl = good(doc, x) ? "good" : cnt(doc, x) > 0 ? "part" : "";
@@ -265,8 +265,8 @@
     }
     $("week").innerHTML = wk;
     $("week").style.gridTemplateColumns = `repeat(${Math.max(L, 5)},minmax(0,1fr))`;
-    const closed = d < today && !isAdmin;
-    const dis = future || ro || closed;
+    const closed = false;
+    const dis = future || ro;
     // Body, ktoré splnili úspešný deň, sú zamknuté (admin môže meniť)
     const locked = isAdmin ? [] : (Array.isArray(r.lock) ? r.lock : g ? HABITS.filter(h => r[h.id] === true).map(h => h.id) : []);
     $("list").innerHTML = HABITS.map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
@@ -280,7 +280,7 @@
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
       $("doneSub").textContent = c + "/6 bodov" + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= 6 || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
     }
-    $("lockNote").textContent = ro || future ? "" : closed ? "Tento deň je uzamknutý." : (+d === +today ? "Deň sa uzamkne o polnoci." : "");
+    $("lockNote").textContent = "";
     deadlineUi();
     $("fallBtn").hidden = ro; if (ro) $("fallNote").hidden = true;
     $("fallText").textContent = "Pád nie je koniec. Jeden bod denne môžeš vynechať, takže keď dnes dáš všetko ostatné, deň je stále úspešný. " +
