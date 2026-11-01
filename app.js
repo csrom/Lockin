@@ -29,12 +29,12 @@
     { from: "11-01", to: "11-08", id: "b_cint", t: "Cintorín a modlitba za zosnulých",
       d: "Nábožne navštív cintorín a pomodli sa za zosnulých, aspoň v duchu. Od 1. do 8. novembra tak raz denne môžeš získať úplné odpustky pre duše v očistci." },
     { from: "11-01", to: "11-02", id: "b_kost", t: "Kostol: Otče náš a Verím v Boha",
-      d: "Na Pamiatku zosnulých (od 1. 11. popoludní do 2. 11. polnoci) nábožne navštív kostol alebo kaplnku a pomodli sa Otče náš a Verím v Boha za duše v očistci." }
+      d: "Od 1. 11. (od poludnia) do 2. 11. (do polnoci) nábožne navštív kostol alebo kaplnku a pomodli sa Otče náš a Verím v Boha za duše v očistci." }
   ];
   const ODPUSTKY = `<details class="odp"><summary>Ako získať úplné odpustky? <span>klikni</span></summary>
     <p>Samotná modlitba nestačí. Treba splniť všetko:</p>
     <ol>
-      <li><b>Úkon:</b> 1.–8. 11. návšteva cintorína s modlitbou za zosnulých, 2. 11. návšteva kostola s Otče náš a Verím v Boha.</li>
+      <li><b>Úkon:</b> 1.–8. 11. návšteva cintorína s modlitbou za zosnulých, od 1. 11. (od poludnia) do 2. 11. návšteva kostola s Otče náš a Verím v Boha.</li>
       <li><b>Spoveď:</b> pár dní pred alebo po, jedna stačí na všetky dni.</li>
       <li><b>Sväté prijímanie:</b> ku každému odpustku, ideálne v ten deň.</li>
       <li><b>Modlitba na úmysel Svätého Otca:</b> napr. Otče náš a Zdravas. Môžeš sa ju pomodliť aj priamo na cintoríne.</li>
