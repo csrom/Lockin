@@ -24,7 +24,16 @@
     { id: "b_deed", t: "Dobrý skutok", d: "Pomôž niekomu, ideálne bez toho, aby to vedel: zavolaj starkej, pomôž susedovi, zaplať niekomu kávu, napíš kamošovi povzbudenie, daruj niečo, čo už nepotrebuješ." },
     { id: "b_self", t: "Niečo pekné pre seba", d: "Sprav niečo, čo ťa robí šťastným. Nie preto, že je to praktické, ale preto, že ťa to teší. Aj to je láska k sebe." }
   ];
-  const bonusFor = d => d.getDay() === 0 ? BONUS : [];
+  // Bonusy podľa dátumu (napr. Dušičky). md = "MM-DD", platí pre daný rok aj ďalšie.
+  const DATE_BONUS = [
+    { from: "11-01", to: "11-08", id: "b_cint", t: "Cintorín a modlitba za zosnulých",
+      d: "Nábožne navštív cintorín a pomodli sa za zosnulých, aspoň v duchu. Od 1. do 8. novembra tak raz denne môžeš získať úplné odpustky pre duše v očistci." },
+    { from: "11-01", to: "11-02", id: "b_kost", t: "Kostol: Otče náš a Verím v Boha",
+      d: "Na Pamiatku zosnulých (od 1. 11. popoludní do 2. 11. polnoci) nábožne navštív kostol alebo kaplnku a pomodli sa Otče náš a Verím v Boha za duše v očistci." }
+  ];
+  const ODPUSTKY = "Podmienky odpustkov: svätá spoveď (stačí jedna na všetky dni), sväté prijímanie (najlepšie v ten deň) a modlitba na úmysel Svätého Otca (Otče náš, Zdravas, Sláva Otcu). A snaha nemať pripútanosť k žiadnemu hriechu.";
+  const md = d => String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const bonusFor = d => (d.getDay() === 0 ? BONUS : []).concat(DATE_BONUS.filter(b => md(d) >= b.from && md(d) <= b.to));
   const NEED = 5, CH = 30;
   const STAGES = [
     { at: 0, n: "Úpätie", theme: "Rozhodnutie", img: "/media/stage1.webp", v: "„Buď silný a odvážny! Neboj sa a nestrachuj.“ Joz 1,9", t: "Kríž si zdvihol. Hora je vysoká a ty ideš aj tak." },
@@ -44,6 +53,7 @@
   const GAMES = [
     ["Counter-Strike 1.6", "https://play-cs.com/en/servers", "klasika v prehliadači, bez inštalácie"],
     ["Need for Speed Underground 2", "https://nfsu2.xyz/", "fanúšikovská verzia v prehliadači, online s kamošmi"],
+    ["Need for Speed Most Wanted", "https://nfsmwo.com/en-us", "online preteky a voľná jazda v prehliadači, bez inštalácie"],
     ["Azeroth Survivors", "https://wow.aethus.pl/", "roguelike vo svete WoW, fanúšikovský projekt, zadarmo"],
     ["World of ClaudeCraft", "https://worldofclaudecraft.com/", "MMORPG vo štýle WoW vytvorené s AI, zadarmo"]
   ];
@@ -166,7 +176,7 @@
       if (isAdmin === null) { const { data } = await sb.rpc("is_admin"); isAdmin = data === true; }
     const ok = await loadAll();
       if (!ok) { show("join"); return; }
-      sel = null; render(); show(tab); chatBadge().catch(() => {});
+      sel = null; render(); show(tab); rewardUi(); chatBadge().catch(() => {});
     } catch (e) {
       console.error(e);
       show("intro");
@@ -273,8 +283,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
-    if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>Nedeľný bonus</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
+    if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>${bon.some(h => h.from) ? "Bonusy dňa" : "Nedeľný bonus"}</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
       <span class="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg></span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
+    if (bon.some(h => h.from)) $("list").innerHTML += `<p class="hint odp">${ODPUSTKY}</p>`;
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
@@ -368,6 +379,23 @@
   $("fallBtn").onclick = () => { $("fallNote").hidden = !$("fallNote").hidden; };
 
   // ─── VÝSTUP ───────────────────────────────────────────
+  // Darované odmeny: 1. týždeň dostane každý, aj keď mu chýbali body (motivácia).
+  const GIFT_SLOTS = [0];
+  const slotOf = (bb, docs) => Math.min(4, Math.floor(dayIdx(bb, docs) / 7));
+  const isGift = (bb, docs) => GIFT_SLOTS.includes(slotOf(bb, docs));
+  // Odmena pripravená na odhalenie? (týždeň skončil, zaslúžená alebo darovaná, ešte nevidená)
+  function rewardReady() {
+    if (!me) return null;
+    const docs = pm(), b = blockStart(nowOrStart(docs), docs), prevB = blockStart(add(b, -1), docs);
+    if (prevB < fromIso(pairStart(docs)) || add(prevB, blockLen(prevB, docs)) > today) return null;
+    if ((me.seen || {})[iso(prevB)]) return null;
+    return blockWon(prevB, docs) || isGift(prevB, docs) ? prevB : null;
+  }
+  function rewardUi() {
+    const rb = rewardReady();
+    $("vyDot").hidden = !rb;
+    $("rewardBanner").hidden = !rb;
+  }
   const blockWon = (bb, docs) => { const L = blockLen(bb, docs); for (let i = 0; i < L; i++) { const x = add(bb, i); if (!docs.every(dc => good(dc, x))) return false; } return true; };
   function renderVystup() {
     const docs = pm(), gd = goodInCycle(docs), si = STAGES.filter(s => gd >= s.at).length - 1, s = STAGES[si];
@@ -391,7 +419,7 @@
     const earned = k => {
       const bb = add(cs, 7 * k); if (bb < fromIso(pairStart(docs))) return null;
       const ended = add(bb, blockLen(bb, docs)) <= today;
-      return seenAll[iso(bb)] || (ended && blockWon(bb, docs)) ? bb : null;
+      return seenAll[iso(bb)] || (ended && (blockWon(bb, docs) || isGift(bb, docs))) ? bb : null;
     };
     const tags = i => (i === 0 ? [] : i < 4 ? [[i - 1, "odmena"]] : [[3, "odmena"], [4, "finále"]])
       .map(([k, t]) => { const bb = earned(k); return bb ? `<button class="gtag" type="button" data-rb="${iso(bb)}" aria-label="Pozrieť odmenu: ${ROT[k][0]}">${t}</button>` : ""; }).join("");
@@ -403,9 +431,12 @@
 
     const b = blockStart(nowOrStart(docs), docs), prevB = blockStart(add(b, -1), docs), hasPrev = prevB >= fromIso(pairStart(docs));
     const sec = $("secret"), seen = me.seen || {};
-    if (hasPrev && blockWon(prevB, docs) && !seen[iso(prevB)]) {
+    const won = hasPrev && blockWon(prevB, docs), gift = hasPrev && !won && isGift(prevB, docs) && add(prevB, blockLen(prevB, docs)) <= today;
+    if ((won || gift) && !seen[iso(prevB)]) {
       sec.className = "card secret open";
-      sec.innerHTML = `<div class="q" aria-hidden="true">!</div><b>Týždeň zamknutý</b><div class="hint">Tvoja odmena čaká.</div><button class="btn" id="revealBtn" style="margin-top:14px">Odhaliť odmenu</button>`;
+      sec.innerHTML = won
+        ? `<div class="q" aria-hidden="true">!</div><b>Týždeň zamknutý</b><div class="hint">Gratulujem, zvládol si to! Tvoja odmena čaká.</div><button class="btn" id="revealBtn" style="margin-top:14px">Vyzdvihnúť odmenu</button>`
+        : `<div class="q" aria-hidden="true">!</div><b>Odmena pre motiváciu</b><div class="hint">Pár bodov chýbalo, ale prvý týždeň dostáva odmenu každý. Ďalší týždeň ho zamkneš naplno.</div><button class="btn" id="revealBtn" style="margin-top:14px">Vyzdvihnúť odmenu</button>`;
       $("revealBtn").onclick = () => openReveal(prevB, docs);
     } else {
       const L = blockLen(b, docs), end = add(b, L); let ok = 0;
@@ -423,13 +454,16 @@
     mv.muted = false; $("mReplay").hidden = true;
     mv.play().catch(() => { mv.muted = true; mv.play().catch(() => {}); });
     $("mLabel").textContent = slot === 4 ? "Finále" : "Odmena · týždeň " + (slot + 1);
-    $("mTitle").textContent = ROT[slot][0]; $("mText").textContent = ROT[slot][1];
+    $("mTitle").textContent = ROT[slot][0];
+    const wonIt = blockWon(bb, docs);
+    $("mText").textContent = (slot < 4 ? (wonIt ? "Gratulujem, týždeň si zvládol naplno! " : isGift(bb, docs) ? "Chýbali ti body, ale pre motiváciu dostávaš odmenu aj tak. Ďalší týždeň to dáš naplno! " : "") : "") + ROT[slot][1];
     $("mGames").hidden = !ROT[slot][2];
     $("mGames").innerHTML = GAMES.map(g => `<a class="game" href="${g[1]}" target="_blank" rel="noopener noreferrer"><b>${esc(g[0])}</b><span>${esc(g[2])}</span></a>`).join("");
     $("mVerse").textContent = STAGES[Math.min(4, slot + 1)].v;
     $("modal").hidden = false; $("mClose").focus();
     me.seen = Object.assign({}, me.seen, { [iso(bb)]: true });
     sb.from("profiles").update({ seen: me.seen }).eq("id", me.id).then(() => {});
+    rewardUi();
   }
   $("mClose").onclick = () => { $("mVid").pause(); $("modal").hidden = true; renderVystup(); };
   $("mVid").onended = () => { $("mReplay").hidden = false; };
@@ -588,6 +622,7 @@
   });
   function alertChat(t) { const el = document.createElement("div"); el.className = "empty"; el.textContent = t; $("msgs").appendChild(el); setTimeout(() => el.remove(), 3000); }
   $("fallChat").onclick = () => go("chat");
+  $("rewardBanner").onclick = () => go("vystup");
   // Bodka pri Chate: je niečo nové od poslednej návštevy?
   async function chatBadge() {
     if (!me || tab === "chat") return;
@@ -672,6 +707,7 @@
 
   function render() {
     if (!me) return;
+    rewardUi();
     ({ dnes: renderDnes, vystup: renderVystup, skupina: renderSkupina, chat: renderChat, profil: renderProfil })[tab]();
   }
 
