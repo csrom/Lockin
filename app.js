@@ -31,7 +31,18 @@
     { from: "11-01", to: "11-02", id: "b_kost", t: "Kostol: Otče náš a Verím v Boha",
       d: "Na Pamiatku zosnulých (od 1. 11. popoludní do 2. 11. polnoci) nábožne navštív kostol alebo kaplnku a pomodli sa Otče náš a Verím v Boha za duše v očistci." }
   ];
-  const ODPUSTKY = "Podmienky odpustkov: svätá spoveď (stačí jedna na všetky dni), sväté prijímanie (najlepšie v ten deň) a modlitba na úmysel Svätého Otca (Otče náš, Zdravas, Sláva Otcu). A snaha nemať pripútanosť k žiadnemu hriechu.";
+  const ODPUSTKY = `<details class="odp"><summary>Ako získať úplné odpustky? <span>klikni</span></summary>
+    <p>Samotná modlitba nestačí. Treba splniť všetko:</p>
+    <ol>
+      <li><b>Úkon:</b> 1.–8. 11. návšteva cintorína s modlitbou za zosnulých, 2. 11. návšteva kostola s Otče náš a Verím v Boha.</li>
+      <li><b>Spoveď:</b> pár dní pred alebo po, jedna stačí na všetky dni.</li>
+      <li><b>Sväté prijímanie:</b> ku každému odpustku, ideálne v ten deň.</li>
+      <li><b>Modlitba na úmysel Svätého Otca:</b> napr. Otče náš a Zdravas. Môžeš sa ju pomodliť aj priamo na cintoríne.</li>
+      <li><b>Vnútorne sa odpútať</b> od každého hriechu, aj všedného.</li>
+    </ol>
+    <p><b>Modlitba za zosnulých:</b> akákoľvek, aj v duchu. Napríklad: <i>Odpočinutie večné daj im, Pane, a svetlo večné nech im svieti. Nech odpočívajú v pokoji. Amen.</i></p>
+    <p>Úplný odpustok sa dá získať len raz za deň. Keď niečo z podmienok chýba, odpustok je čiastočný, takže modlitba nikdy nie je nazmar. Odpustok môžeš obetovať za konkrétneho zosnulého.</p>
+  </details>`;
   const md = d => String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const bonusFor = d => (d.getDay() === 0 ? BONUS : []).concat(DATE_BONUS.filter(b => md(d) >= b.from && md(d) <= b.to));
   const NEED = 5, CH = 30;
@@ -285,7 +296,7 @@
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
     if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>${bon.some(h => h.from) ? "Bonusy dňa" : "Nedeľný bonus"}</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
       <span class="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg></span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
-    if (bon.some(h => h.from)) $("list").innerHTML += `<p class="hint odp">${ODPUSTKY}</p>`;
+    if (bon.some(h => h.from)) $("list").innerHTML += ODPUSTKY;
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
