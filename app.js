@@ -46,6 +46,8 @@
   const md = d => String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const bonusFor = d => (d.getDay() === 0 ? BONUS : []).concat(DATE_BONUS.filter(b => md(d) >= b.from && md(d) <= b.to));
   const NEED = 5, CH = 30;
+  // V nedeľu sa deep work nerobí
+  const habitsFor = d => d.getDay() === 0 ? HABITS.filter(h => h.id !== "deep") : HABITS;
   const STAGES = [
     { at: 0, n: "Úpätie", theme: "Rozhodnutie", img: "/media/stage1.webp", v: "„Buď silný a odvážny! Neboj sa a nestrachuj.“ Joz 1,9", t: "Kríž si zdvihol. Hora je vysoká a ty ideš aj tak." },
     { at: 7, n: "Svah", theme: "Zaprenie", img: "/media/stage2.webp", v: "„Bijem svoje telo a podrobujem ho.“ 1 Kor 9,27", t: "Telo bude kričať, že chce späť. Ty rozhoduješ, nie ono." },
@@ -275,7 +277,8 @@
     const d = sel, future = d > today, r = doc.days[iso(d)] || {}, c = cnt(doc, d), g = good(doc, d);
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
     const bon = bonusFor(d), bc = bon.filter(h => r[h.id] === true).length;
-    $("scoreN").textContent = c + "/6";
+    const tot = habitsFor(d).length;
+    $("scoreN").textContent = c + "/" + tot;
     $("scoreN").dataset.bonus = bc ? "+" + bc + " bonus" : "";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
     cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
@@ -290,7 +293,7 @@
     const dis = future || ro;
     // Body, ktoré splnili úspešný deň, sú zamknuté (admin môže meniť)
     const locked = isAdmin ? [] : (Array.isArray(r.lock) ? r.lock : g ? HABITS.filter(h => r[h.id] === true).map(h => h.id) : []);
-    $("list").innerHTML = HABITS.map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
+    $("list").innerHTML = habitsFor(d).map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
@@ -300,7 +303,7 @@
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
-      $("doneSub").textContent = c + "/6 bodov" + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= 6 || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
+      $("doneSub").textContent = c + "/" + tot + " bodov" + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= tot || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
     }
     $("lockNote").textContent = "";
     deadlineUi();
