@@ -136,7 +136,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 
 /* LIŠTA */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(14,19,26,.96);border-top:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
 .tabs button{background:none;border:0;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:12px;cursor:pointer;position:relative;min-height:56px}
 .tabs svg{width:24px;height:24px}
 .tabs button[aria-current="page"]{color:var(--fg)}
@@ -317,3 +317,15 @@ html{scroll-behavior:smooth}
 .odp[open] summary span{display:none}
 .odp ol{margin:0 0 8px;padding-left:20px}.odp li{margin:4px 0}.odp p{margin:8px 0}
 @media (prefers-reduced-motion:reduce){.reward-banner,.tabs .dot.gift{animation:none}}
+.tabs .share{color:#ff5a5a}
+.tabs .share svg{filter:drop-shadow(0 0 6px rgba(255,80,80,.75));animation:redglow 2.2s ease-in-out infinite}
+@keyframes redglow{0%,100%{filter:drop-shadow(0 0 3px rgba(255,80,80,.5))}50%{filter:drop-shadow(0 0 9px rgba(255,80,80,.95))}}
+.guide{position:fixed;inset:0;z-index:90;background:rgba(10,13,18,.82);backdrop-filter:blur(6px);display:grid;place-items:end center;padding:16px}
+.guide[hidden]{display:none}
+.guide-in{width:100%;max-width:440px;background:#121821;border:1px solid var(--dawn);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;margin-bottom:calc(10px + env(safe-area-inset-bottom))}
+.guide-in b{font-size:19px}
+.guide-in ol{margin:0;padding-left:22px;line-height:1.6;font-size:16px}
+.guide-in li{margin:6px 0}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:95;background:#1b2430;border:1px solid var(--steel);color:var(--fg);padding:12px 18px;border-radius:12px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
+.toast[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.tabs .share svg{animation:none}}

@@ -111,7 +111,9 @@
   const docOf = p => ({ start: p.start_date, days: days[p.id] || {} });
   const pm = () => partner ? [docOf(me), docOf(partner)] : [docOf(me)];
   const pairStart = docs => docs.map(d => d.start).sort().slice(-1)[0];
-  const cnt = (doc, d) => { const r = doc.days[iso(d)] || {}; return HABITS.filter(h => r[h.id] === true).length; };
+  // Body dňa vrátane bonusov (bonusy pomáhajú dosiahnuť úspešný deň)
+  const cnt = (doc, d) => { const r = doc.days[iso(d)] || {}; return HABITS.concat(bonusFor(d)).filter(h => r[h.id] === true).length; };
+  const baseCnt = (doc, d) => { const r = doc.days[iso(d)] || {}; return HABITS.filter(h => r[h.id] === true).length; };
   const good = (doc, d) => cnt(doc, d) >= (d.getDay() === 0 ? 1 : NEED);
   const dayIdx = (d, docs) => { const x = between(fromIso(pairStart(docs)), d); return ((x % CH) + CH) % CH; };
   const cycleStart = (d, docs) => add(d, -dayIdx(d, docs));
@@ -130,7 +132,7 @@
     VIEWS.forEach(v => $("v-" + v).hidden = v !== view);
     const inApp = ["dnes", "vystup", "skupina", "chat", "profil"].includes(view);
     $("tabs").hidden = !inApp;
-    document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
+    document.querySelectorAll(".tabs button[data-tab]").forEach(b => b.setAttribute("aria-current", b.dataset.tab === view ? "page" : "false"));
     if (view !== "vystup") $("stageVid").pause();
     if (view !== "intro") $("tapGate").hidden = true;
     setTimeout(moreUi, 0);
@@ -139,7 +141,15 @@
     window.scrollTo(0, 0);
   }
   function go(t) { tab = t; render(); show(t); }
-  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => go(b.dataset.tab));
+  document.querySelectorAll(".tabs button[data-tab]").forEach(b => b.onclick = () => go(b.dataset.tab));
+  // Zdieľanie odkazu na appku
+  $("shareBtn").onclick = async () => {
+    const url = location.origin + "/", text = "Poď so mnou do Lock In – 30 dní disciplíny veriaceho muža. Sám, vo dvojici alebo v skupine nezlomní.";
+    try { if (navigator.share) { await navigator.share({ title: "Lock In", text, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(text + " " + url); toast("Odkaz je skopírovaný. Vlož ho chalanom do správy."); }
+    catch (e) { prompt("Skopíruj odkaz:", url); }
+  };
+  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { el.hidden = true; }, 2600); }
 
   // ─── Načítanie dát ────────────────────────────────────
   async function loadAll() {
@@ -274,14 +284,14 @@
     }
     const ref = nowOrStart(docs), b = blockStart(ref, docs), L = blockLen(b, docs);
     if (!sel || sel < b || sel >= add(b, L)) sel = ref;
-    const d = sel, future = d > today, r = doc.days[iso(d)] || {}, c = cnt(doc, d), g = good(doc, d);
+    const d = sel, future = d > today, r = doc.days[iso(d)] || {}, c = baseCnt(doc, d), all = cnt(doc, d), g = good(doc, d);
     $("dayTag").textContent = "Deň " + (dayIdx(d, docs) + 1) + " / " + CH + (+d === +today ? "" : " · " + dn(d) + " " + d.getDate() + "." + (d.getMonth() + 1) + ".");
     const bon = bonusFor(d), bc = bon.filter(h => r[h.id] === true).length;
     const tot = habitsFor(d).length;
     $("scoreN").textContent = c + "/" + tot;
     $("scoreN").dataset.bonus = bc ? "+" + bc + " bonus" : "";
     const cap = $("scoreCap"); cap.className = "cap" + (g ? " good" : "");
-    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - c) + " do úspešného dňa");
+    cap.textContent = future ? "tento deň ešte nezačal" : g ? "úspešný deň" : (d.getDay() === 0 ? "voľná nedeľa, stačí 1 bod" : "ešte " + (NEED - all) + " do úspešného dňa" + (bon.length ? " (rátajú sa aj bonusy)" : ""));
     let wk = "";
     for (let i = 0; i < L; i++) {
       const x = add(b, i), fut = x > today, cl = good(doc, x) ? "good" : cnt(doc, x) > 0 ? "part" : "";
@@ -292,18 +302,18 @@
     const closed = false;
     const dis = future || ro;
     // Body, ktoré splnili úspešný deň, sú zamknuté (admin môže meniť)
-    const locked = isAdmin ? [] : (Array.isArray(r.lock) ? r.lock : g ? HABITS.filter(h => r[h.id] === true).map(h => h.id) : []);
+    const locked = isAdmin ? [] : (Array.isArray(r.lock) ? r.lock : g ? HABITS.concat(bon).filter(h => r[h.id] === true).map(h => h.id) : []);
     $("list").innerHTML = habitsFor(d).map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[h.id]}</svg>
       <span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span>
       ${h.dur ? `<select id="dur" data-dur aria-label="Dĺžka deep work" ${dis ? "disabled" : ""}><option value="30" ${r.dur !== "60" ? "selected" : ""}>30 min</option><option value="60" ${r.dur === "60" ? "selected" : ""}>60 min</option></select>` : ""}</label>`; }).join("");
-    if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>${bon.some(h => h.from) ? "Bonusy dňa" : "Nedeľný bonus"}</div>` + bon.map(h => `<label class="item bonus"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis ? "disabled" : ""}>
-      <span class="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg></span><span class="t">${h.t}<small>${h.d}</small></span></label>`).join("");
+    if (bon.length) $("list").innerHTML += `<div class="bonus-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg>${bon.some(h => h.from) ? "Bonusy dňa" : "Nedeľný bonus"}</div>` + bon.map(h => { const lk = r[h.id] === true && locked.includes(h.id); return `<label class="item bonus${lk ? " locked" : ""}"><input type="checkbox" id="h-${h.id}" data-h="${h.id}" ${r[h.id] === true ? "checked" : ""} ${dis || lk ? "disabled" : ""}>
+      <span class="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v19M7 8h10"/></svg></span><span class="t">${h.t}${lk ? '<span class="lk" title="Zamknuté – splnilo úspešný deň">🔒</span>' : ""}<small>${h.d}</small></span></label>`; }).join("");
     if (bon.some(h => h.from)) $("list").innerHTML += ODPUSTKY;
     $("doneBox").hidden = !(g && !future);
     if (g && !future) {
       $("doneTitle").textContent = ro ? "Parťák má úspešný deň" : "Úspešný deň";
-      $("doneSub").textContent = c + "/" + tot + " bodov" + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= tot || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
+      $("doneSub").textContent = c + "/" + tot + " bodov" + (all > c ? " + " + (all - c) + " bonus" : "") + (ro ? "" : " · " + streakOf(doc) + " " + dniWord(streakOf(doc)) + " v rade") + (ro || c >= tot || closed ? "" : " · pokračuj, každý bod sa ráta do rebríčka");
     }
     $("lockNote").textContent = "";
     deadlineUi();
@@ -327,7 +337,7 @@
     if (e.target.dataset.h) mine[k][e.target.dataset.h] = e.target.checked;
     if (e.target.hasAttribute("data-dur")) mine[k].dur = e.target.value;
     const now = good(docOf(me), sel);
-    if (!was && now) mine[k].lock = HABITS.filter(h => mine[k][h.id] === true).map(h => h.id);
+    if (!was && now) mine[k].lock = HABITS.concat(bonusFor(sel)).filter(h => mine[k][h.id] === true).map(h => h.id);
     if (was && !now && isAdmin) delete mine[k].lock;
     renderDnes();
     if (!was && now) setTimeout(() => celebrate(sel), 250);
@@ -743,7 +753,7 @@
       : android ? "V Chrome ťukni na ⋮ vpravo hore, potom Pridať na plochu a Inštalovať."
       : "V prehliadači otvor menu (⋮) a vyber Inštalovať aplikáciu alebo Pridať na plochu.";
     $("install").hidden = standalone; $("installIntro").hidden = standalone;
-    $("installBtn").hidden = $("installBtn2").hidden = standalone || !installEvt;
+    $("installBtn").hidden = $("installBtn2").hidden = standalone || !(installEvt || android || samsung || inApp);
     $("installTxt").textContent = txt;
     // Na úvode: na Androide stačí tlačidlo, text len keď tlačidlo nie je k dispozícii
     $("installTxt2").textContent = installEvt ? "" : (inApp || ios || android ? txt : "");
@@ -754,11 +764,29 @@
     let dayX = false; try { dayX = localStorage.getItem("lockinInstallX") === "x"; } catch (e) {}
     $("installDay").hidden = standalone || dayX;
     $("installTxt3").textContent = installEvt ? "Jedno ťuknutie a máš ju na ploche s vlastnou ikonou." : txt;
-    $("installBtn3").hidden = !installEvt;
+    $("installBtn3").hidden = !(installEvt || android || samsung || inApp || ios);
     if (!$("iosTip").hidden) $("installTxt2").textContent = "";
   }
   $("iosTipX").onclick = () => { $("iosTip").hidden = true; try { localStorage.setItem("lockinIosTip", "x"); } catch (e) {} };
-  $("installBtn2").onclick = $("installBtn3").onclick = () => $("installBtn").onclick();
+  // Inštalácia: ak Chrome ponúkne systémové okno, použijeme ho; inak ukážeme návod krok za krokom
+  async function doInstall() {
+    if (installEvt) {
+      try { installEvt.prompt(); const ch = await installEvt.userChoice; installEvt = null; installUi(); if (ch && ch.outcome === "accepted") return; } catch (e) {}
+    }
+    showGuide();
+  }
+  function showGuide() {
+    const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua), samsung = /SamsungBrowser/.test(ua),
+      inApp = /FBAN|FBAV|Instagram|Messenger|Line\//.test(ua);
+    const steps = inApp ? ["Ťukni na ⋯ alebo ⋮ hore vpravo.", "Vyber <b>Otvoriť v prehliadači</b> (Chrome alebo Safari).", "V prehliadači postupuj podľa tohto návodu znova."]
+      : ios ? ["Otvor stránku v <b>Safari</b>.", "Ťukni na <b>⋯</b> dole vpravo.", "Vyber <b>Zdieľať</b>.", "Ťukni na <b>Zobraziť viac</b>.", "Vyber <b>Pridať na plochu</b> a potvrď <b>Pridať</b>."]
+      : samsung ? ["Ťukni na <b>≡</b> dole vpravo.", "Vyber <b>Pridať stránku do</b>.", "Vyber <b>Domovská obrazovka</b> a potvrď <b>Pridať</b>."]
+      : ["Ťukni na <b>⋮</b> (tri bodky) vpravo hore v Chrome.", "Vyber <b>Pridať na plochu</b> (niekde <b>Inštalovať aplikáciu</b>).", "Potvrď <b>Inštalovať</b>.", "Lock In sa objaví na ploche ako appka s vlastnou ikonou."];
+    $("guideSteps").innerHTML = steps.map(x => `<li>${x}</li>`).join("");
+    $("guide").hidden = false;
+  }
+  $("guideClose").onclick = () => { $("guide").hidden = true; };
+  $("installBtn").onclick = $("installBtn2").onclick = $("installBtn3").onclick = doInstall;
   $("installDayX").onclick = () => { $("installDay").hidden = true; try { localStorage.setItem("lockinInstallX", "x"); } catch (e) {} };
   installUi();
 
