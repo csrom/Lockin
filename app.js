@@ -45,7 +45,7 @@
   </details>`;
   const md = d => String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const bonusFor = d => (d.getDay() === 0 ? BONUS : []).concat(DATE_BONUS.filter(b => md(d) >= b.from && md(d) <= b.to));
-  const NEED = 5, CH = 30;
+  const NEED = 5, CH = 30, NEWS_V = "2026-11-05";
   // V nedeľu sa deep work nerobí
   const habitsFor = d => d.getDay() === 0 ? HABITS.filter(h => h.id !== "deep") : HABITS;
   const STAGES = [
@@ -200,6 +200,8 @@
     const ok = await loadAll();
       if (!ok) { show("join"); return; }
       sel = null; render(); show(tab); rewardUi(); chatBadge().catch(() => {});
+      let seenNews = false; try { seenNews = localStorage.getItem("lockinNews") === NEWS_V; } catch (e) {}
+      if (!seenNews) $("news").hidden = false;
     } catch (e) {
       console.error(e);
       show("intro");
@@ -588,21 +590,34 @@
 
 
   // ─── CHAT ─────────────────────────────────────────────
-  let room = null, chatSub = null, chatMsgs = [], chatSeen = {};
+  let room = "all", chatSub = null, chatMsgs = [], chatSeen = {}, unread = {};
   try { chatSeen = JSON.parse(localStorage.getItem("lockinChatSeen") || "{}"); } catch (e) {}
+  const HYPE = ["🔥", "💪", "🙏", "✝️", "⛰️", "👊", "😤", "🏆", "⚡", "🫡", "🥶", "📖"];
   const roomsOf = () => {
     const r = [{ id: "all", n: "Všetci" }];
     if (norm(me.group_name)) r.push({ id: "g:" + norm(me.group_name), n: me.group_name.trim() });
     if (norm(me.pair_code)) r.push({ id: "p:" + norm(me.pair_code), n: partner ? "Ja + " + partner.nick : "Dvojica" });
     return r;
   };
+  // Počty neprečítaných: na záložke Chat aj pri každej miestnosti
+  function unreadUi() {
+    const rs = roomsOf().map(x => x.id), tot = rs.reduce((n, r) => n + (unread[r] || 0), 0);
+    const b = $("chatDot"); b.hidden = !tot; b.textContent = tot > 99 ? "99+" : String(tot || "");
+    document.querySelectorAll("[data-room]").forEach(el => {
+      const n = unread[el.dataset.room] || 0, c = el.querySelector(".cnt");
+      if (c) { c.hidden = !n; c.textContent = n > 99 ? "99+" : n; }
+    });
+  }
   function renderChat() {
     const rs = roomsOf();
-    if (!room || !rs.some(r => r.id === room)) room = rs[rs.length > 1 ? 1 : 0].id;
-    $("rooms").innerHTML = rs.map(r => `<button role="tab" data-room="${esc(r.id)}" aria-selected="${r.id === room}">${esc(r.n)}</button>`).join("");
+    if (!rs.some(r => r.id === room)) room = "all";
+    $("rooms").innerHTML = rs.map(r => `<button role="tab" data-room="${esc(r.id)}" aria-selected="${r.id === room}">${esc(r.n)}<span class="cnt" hidden></span></button>`).join("");
+    $("hype").innerHTML = HYPE.map(e => `<button type="button" data-e="${e}" aria-label="Pridať ${e}">${e}</button>`).join("");
+    unreadUi();
     loadRoom();
   }
   $("rooms").onclick = e => { const b = e.target.closest("[data-room]"); if (b && b.dataset.room !== room) { room = b.dataset.room; renderChat(); } };
+  $("hype").onclick = e => { const b = e.target.closest("[data-e]"); if (!b) return; const i = $("chatIn"); i.value = (i.value ? i.value.replace(/\s*$/, " ") : "") + b.dataset.e; i.focus(); };
   async function loadRoom() {
     const r = room;
     $("msgs").innerHTML = '<div class="empty">Načítavam…</div>';
@@ -610,7 +625,7 @@
     if (r !== room) return;
     if (error) { $("msgs").innerHTML = '<div class="empty">' + (/messages/.test(error.message || "") ? "Chat sa ešte pripravuje. Skús to o chvíľu." : "Chat sa nepodarilo načítať.") + '</div>'; return; }
     chatMsgs = (data || []).reverse(); drawMsgs(true);
-    subscribe();
+    if (!chatSub) subscribe();
   }
   function subscribe() {
     if (chatSub) { sb.removeChannel(chatSub); chatSub = null; }
@@ -618,22 +633,23 @@
     chatSub = sb.channel("chat-" + me.id).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, pl => {
       const m = pl.new; if (!rooms.includes(m.room)) return;
       if (m.room === room && tab === "chat") { if (!chatMsgs.some(x => x.id === m.id)) { chatMsgs.push(m); drawMsgs(true); } }
-      else if (m.user_id !== me.id) $("chatDot").hidden = false;
+      else if (m.user_id !== me.id) { unread[m.room] = (unread[m.room] || 0) + 1; unreadUi(); }
     }).subscribe();
   }
   const hhmm = t => { const d = new Date(t); return d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"); };
   function drawMsgs(scroll) {
-    if (!chatMsgs.length) { $("msgs").innerHTML = '<div class="empty">Zatiaľ ticho. Napíš prvý — povzbuď chalanov alebo sa priznaj, že je to ťažké.</div>'; return; }
+    if (!chatMsgs.length) { $("msgs").innerHTML = '<div class="empty">Zatiaľ ticho. Napíš prvý — povzbuď chalanov alebo sa priznaj, že je to ťažké. 🔥</div>'; unread[room] = 0; unreadUi(); return; }
     let last = "", h = "";
     chatMsgs.forEach(m => {
       const d = new Date(m.created_at), key = d.toDateString();
       if (key !== last) { last = key; h += `<div class="daysep">${key === new Date().toDateString() ? "Dnes" : d.toLocaleDateString("sk-SK", { weekday: "long", day: "numeric", month: "numeric" })}</div>`; }
-      h += `<div class="msg${m.user_id === me.id ? " mine" : ""}"><div class="who">${esc(m.nick)}</div><div class="tx">${esc(m.body)}</div><time>${hhmm(m.created_at)}</time></div>`;
+      const big = /^(\p{Extended_Pictographic}|\uFE0F|\u200D|\s){1,8}$/u.test(m.body);
+      h += `<div class="msg${m.user_id === me.id ? " mine" : ""}${big ? " big" : ""}"><div class="who">${esc(m.nick)}</div><div class="tx">${esc(m.body)}</div><time>${hhmm(m.created_at)}</time></div>`;
     });
     $("msgs").innerHTML = h;
     chatSeen[room] = chatMsgs[chatMsgs.length - 1].created_at;
     try { localStorage.setItem("lockinChatSeen", JSON.stringify(chatSeen)); } catch (e) {}
-    $("chatDot").hidden = true;
+    unread[room] = 0; unreadUi();
     if (scroll) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
   }
   $("chatForm").addEventListener("submit", async e => {
@@ -647,15 +663,20 @@
   function alertChat(t) { const el = document.createElement("div"); el.className = "empty"; el.textContent = t; $("msgs").appendChild(el); setTimeout(() => el.remove(), 3000); }
   $("fallChat").onclick = () => go("chat");
   $("rewardBanner").onclick = () => go("vystup");
-  // Bodka pri Chate: je niečo nové od poslednej návštevy?
+  // Neprečítané od poslednej návštevy (pri štarte, pri návrate do appky a každú minútu ako záloha k realtime)
   async function chatBadge() {
-    if (!me || tab === "chat") return;
+    if (!me) return;
     const rs = roomsOf().map(x => x.id);
-    const { data, error } = await sb.from("messages").select("room,created_at,user_id").in("room", rs).neq("user_id", me.id).order("created_at", { ascending: false }).limit(20);
+    const { data, error } = await sb.from("messages").select("room,created_at,user_id").in("room", rs).neq("user_id", me.id).order("created_at", { ascending: false }).limit(300);
     if (error) return;
-    $("chatDot").hidden = !(data || []).some(m => !chatSeen[m.room] || m.created_at > chatSeen[m.room]);
+    const u = {};
+    (data || []).forEach(m => { if (tab === "chat" && m.room === room) return; if (!chatSeen[m.room] || m.created_at > chatSeen[m.room]) u[m.room] = (u[m.room] || 0) + 1; });
+    unread = u; unreadUi();
     if (!chatSub) subscribe();
   }
+  setInterval(() => { if (me && !document.hidden) chatBadge().catch(() => {}); }, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && me) chatBadge().catch(() => {}); });
+
 
   // ─── PROFIL ───────────────────────────────────────────
   function renderProfil() {
@@ -786,6 +807,7 @@
     $("guide").hidden = false;
   }
   $("guideClose").onclick = () => { $("guide").hidden = true; };
+  $("newsClose").onclick = () => { $("news").hidden = true; try { localStorage.setItem("lockinNews", NEWS_V); } catch (e) {} };
   $("installBtn").onclick = $("installBtn2").onclick = $("installBtn3").onclick = doInstall;
   $("installDayX").onclick = () => { $("installDay").hidden = true; try { localStorage.setItem("lockinInstallX", "x"); } catch (e) {} };
   installUi();
